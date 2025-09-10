@@ -32,11 +32,22 @@ exports.submitPlant = async (req, res) => {
                 aiSuggestedName: aiName,
             });
             await newSubmission.save();
-            res.status(201).json({ message: "Submission successful! Awaiting expert verification.", submission: newSubmission });
+ const successMessage = `Successfully submitted! The AI has identified the plant as '${aiName}'. It is now pending verification by one of our experts.`;
+
+            res.status(201).json({ 
+                message: successMessage, // Send the new detailed message
+                submission: {
+                    // Send back some key details for the frontend to display
+                    aiSuggestedName: newSubmission.aiSuggestedName,
+                    imageURL: newSubmission.imageURL,
+                    status: newSubmission.status
+                }
+            });
 
         } else {
             // 5. If not medicinal, reject the submission
-            res.status(400).json({ message: `Plant identified as '${aiName}'. It is not in our list of accepted medicinal plants.` });
+            const plantName = aiName || "Unknown";
+            res.status(400).json({ message: `Plant identified as '${plantName}'. It was not recognized as a medicinal plant and was not submitted.` });
         }
     } catch (error) {
         console.error("Submission Error:", error);

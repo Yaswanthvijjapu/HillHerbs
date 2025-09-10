@@ -15,8 +15,19 @@ function fileToGenerativePart(path, mimeType) {
 
 async function getAiPlantName(imagePath, mimeType) {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-    const prompt = `Identify the single, most prominent plant in this image. Respond with ONLY a single JSON object in the format {"label": "plant_name"}. If you are unsure or cannot identify a plant, the label should be "Unknown".`;
-
+ const prompt = `
+      Analyze the plant in this image and provide a structured response.
+      1. Identify the single, most prominent plant.
+      2. Determine if this plant is commonly known to have medicinal uses.
+      
+      Respond with ONLY a single JSON object using this exact format:
+      {"label": "plant_name", "isMedicinal": boolean}
+      
+      For example: {"label": "Neem", "isMedicinal": true} or {"label": "Common Rose", "isMedicinal": false}.
+      
+      If you are unsure or cannot identify a plant, use {"label": "Unknown", "isMedicinal": false}.
+    `;
+    
     const imageParts = [fileToGenerativePart(imagePath, mimeType)];
 
     const result = await model.generateContent([prompt, ...imageParts]);
