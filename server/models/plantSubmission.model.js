@@ -9,7 +9,11 @@ const plantSubmissionSchema = new mongoose.Schema({
         coordinates: { type: [Number], required: true } // [longitude, latitude]
     },
     aiSuggestedName: { type: String, required: true },
-    status: { type: String, enum: ['pending_expert_verification', 'verified', 'rejected'], default: 'pending_expert_verification' }
+    status: { type: String, enum: ['pending_expert_verification', 'verified', 'rejected'], default: 'pending_expert_verification' },
+    verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    finalPlantName: { type: String },
+    expertNotes: { type: String },
+
 }, { timestamps: true });
 
 plantSubmissionSchema.index({ location: '2dsphere' }); // For geospatial queries

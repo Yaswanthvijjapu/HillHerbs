@@ -32,7 +32,7 @@ exports.submitPlant = async (req, res) => {
                 aiSuggestedName: aiName,
             });
             await newSubmission.save();
- const successMessage = `Successfully submitted! The AI has identified the plant as '${aiName}'. It is now pending verification by one of our experts.`;
+            const successMessage = `Successfully submitted! The AI has identified the plant as '${aiName}'. It is now pending verification by one of our experts.`;
 
             res.status(201).json({ 
                 message: successMessage, // Send the new detailed message
@@ -57,5 +57,57 @@ exports.submitPlant = async (req, res) => {
         if (tempImagePath) {
             fs.unlinkSync(tempImagePath);
         }
+    }
+};
+
+// --- NEW FUNCTION 1: Get all pending submissions ---
+exports.getPendingSubmissions = async (req, res) => {
+    try {
+        const submissions = await PlantSubmission.find({ status: 'pending_expert_verification' })
+            .populate('submittedBy', 'username fullName') // Get submitter's name
+            .sort({ createdAt: -1 }); // Show newest first
+        res.status(200).json(submissions);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching pending submissions.', error: error.message });
+    }
+};
+// --- NEW FUNCTION 2: Verify a single submission ---
+exports.verifySubmission = async (req, res) => {
+    try {
+        const { id } = req.params; // The ID of the submission to verify
+        const { action, correctedName } = req.body; // 'approve', 'reject', or 'correct'
+        const expertId = req.user.id; // From the auth middleware
+
+        const submission = await PlantSubmission.findById(id);
+        if (!submission) {
+            return res.status(404).json({ message: 'Submission not found.' });
+        }
+
+        switch (action) {
+            case 'approve':
+                submission.status = 'verified';
+                submission.finalPlantName = submission.aiSuggestedName;
+                break;
+            case 'reject':
+                submission.status = 'rejected';
+                submission.expertNotes = 'Rejected by expert.'; // Can be expanded later
+                break;
+            case 'correct':
+                if (!correctedName) {
+                    return res.status(400).json({ message: 'Corrected name is required for this action.' });
+                }
+                submission.status = 'verified';
+                submission.finalPlantName = correctedName;
+                break;
+            default:
+                return res.status(400).json({ message: 'Invalid action.' });
+        }
+
+        submission.verifiedBy = expertId;
+        await submission.save();
+
+        res.status(200).json({ message: `Submission successfully ${submission.status}.`, submission });
+    } catch (error) {
+        res.status(500).json({ message: 'Error verifying submission.', error: error.message });
     }
 };

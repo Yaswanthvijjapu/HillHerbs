@@ -15,8 +15,15 @@ function LoginPage() {
         setError('');
         setLoading(true);
         try {
-            await login(username, password);
-            navigate('/dashboard');
+            // The login function in AuthContext returns the user data
+            const { user } = await login(username, password);
+            
+            // --- NEW ROLE-BASED REDIRECT ---
+            if (user.role === 'expert') {
+                navigate('/expert-dashboard');
+            } else {
+                navigate('/dashboard');
+            }
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed.');
         } finally {

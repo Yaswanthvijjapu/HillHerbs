@@ -14,5 +14,13 @@ const authMiddleware = (req, res, next) => {
         res.status(401).json({ message: 'Invalid or expired token.' });
     }
 };
+const isExpert = (req, res, next) => {
+    // This middleware should run AFTER authMiddleware
+    if (req.user && req.user.role === 'expert') {
+        next(); // User is an expert, proceed
+    } else {
+        res.status(403).json({ message: 'Forbidden: Access is restricted to experts only.' });
+    }
+};
 
-module.exports = authMiddleware;
+module.exports = { authMiddleware, isExpert };

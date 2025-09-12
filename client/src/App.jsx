@@ -6,6 +6,7 @@ import RegisterPage from './pages/RegisterPage';
 import HillyUserDashboard from './pages/HillyUserDashboard';
 import ProtectedRoute from './routes/ProtectedRoute';
 import Navbar from './components/layout/Navbar';
+import ExpertDashboard from './pages/ExpertDashboard';
 
 // Layout component to wrap pages with the Navbar
 const AppLayout = () => (
@@ -30,6 +31,7 @@ function App() {
                     <Route element={<ProtectedRoute />}>
                         <Route element={<AppLayout />}>
                             <Route path="/dashboard" element={<HillyUserDashboard />} />
+                            <Route path="/expert-dashboard" element={<ExpertDashboard />} />
                         </Route>
                     </Route>
 

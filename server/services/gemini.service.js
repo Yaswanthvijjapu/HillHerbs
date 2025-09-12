@@ -15,7 +15,7 @@ function fileToGenerativePart(path, mimeType) {
 
 async function getAiPlantName(imagePath, mimeType) {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
- const prompt = `
+     const prompt = `
       Analyze the plant in this image and provide a structured response.
       1. Identify the single, most prominent plant.
       2. Determine if this plant is commonly known to have medicinal uses.
