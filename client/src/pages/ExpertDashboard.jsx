@@ -1,33 +1,43 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import plantService from '../services/plantService';
 import SubmissionCard from '../components/dashboard/SubmissionCard';
+import HistoryCard from '../components/dashboard/HistoryCard';
 import Spinner from '../components/shared/Spinner';
 import Modal from '../components/shared/Modal';
 
 // --- Main Dashboard Component ---
 function ExpertDashboard() {
-    const [submissions, setSubmissions] = useState([]);
+    // --- State Management ---
+    const [pendingSubmissions, setPendingSubmissions] = useState([]);
+    const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedSubmission, setSelectedSubmission] = useState(null);
 
-    const fetchSubmissions = useCallback(async () => {
+    // --- Data Fetching ---
+    const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await plantService.getPending();
-            setSubmissions(response.data);
+            // Use Promise.all to fetch both sets of data concurrently for better performance
+            const [pendingRes, historyRes] = await Promise.all([
+                plantService.getPending(),
+                plantService.getHistory()
+            ]);
+            setPendingSubmissions(pendingRes.data);
+            setHistory(historyRes.data);
         } catch (err) {
-            setError('Failed to fetch submissions. Please try refreshing the page.');
+            setError('Failed to fetch dashboard data. Please try refreshing the page.');
         } finally {
             setLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        fetchSubmissions();
-    }, [fetchSubmissions]);
+        fetchData();
+    }, [fetchData]);
 
+    // --- Event Handlers ---
     const handleOpenModal = (submission) => {
         setSelectedSubmission(submission);
         setIsModalOpen(true);
@@ -41,52 +51,89 @@ function ExpertDashboard() {
     const handleUpdateSubmission = async (id, payload) => {
         try {
             await plantService.verify(id, payload);
-            // Remove the verified submission from the local state for an immediate UI update
-            setSubmissions(prev => prev.filter(sub => sub._id !== id));
+            // Refetch all data to get the latest state for both pending and history lists
+            fetchData(); 
             handleCloseModal(); // Close the modal on success
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Failed to update submission.';
-            // In a real app, you'd show this error inside the modal itself
+            // Display the error to the user
             alert(errorMessage);
         }
     };
-    
+
+    // --- Render Logic ---
     if (loading) {
         return (
             <div className="flex justify-center items-center h-screen">
                 <div className="text-center">
                     <Spinner />
-                    <p className="mt-2 text-gray-600">Loading submissions...</p>
+                    <p className="mt-2 text-gray-600">Loading Dashboard Data...</p>
                 </div>
             </div>
         );
     }
 
+    const verifiedHistory = history.filter(item => item.status === 'verified');
+    const rejectedHistory = history.filter(item => item.status === 'rejected');
+
     return (
         <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-gray-800 mb-2">Expert Verification Dashboard</h2>
             <p className="text-gray-600 mb-8">Review and validate plant submissions from the community.</p>
-            
-            {error && <p className="text-red-600 bg-red-50 p-3 rounded-md text-sm text-center mb-6">{error}</p>}
-            
-            {submissions.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    {submissions.map(submission => (
-                        <SubmissionCard 
-                            key={submission._id} 
-                            submission={submission} 
-                            onVerifyClick={() => handleOpenModal(submission)}
-                        />
-                    ))}
-                </div>
-            ) : (
-                <div className="text-center py-20 bg-white rounded-lg shadow-md mt-8">
-                    <h3 className="text-2xl font-semibold text-gray-800">All Caught Up!</h3>
-                    <p className="text-gray-500 mt-2">There are no new submissions to verify at this time.</p>
-                </div>
-            )}
 
-            {/* --- THE VERIFICATION MODAL --- */}
+            {error && <p className="text-red-600 bg-red-50 p-3 rounded-md text-sm text-center mb-6">{error}</p>}
+
+            {/* Section for Pending Submissions */}
+            <section>
+                <h3 className="text-2xl font-semibold text-gray-700 mb-4 border-b pb-2">Pending Verification ({pendingSubmissions.length})</h3>
+                {pendingSubmissions.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                        {pendingSubmissions.map(submission => (
+                            <SubmissionCard 
+                                key={submission._id} 
+                                submission={submission} 
+                                onVerifyClick={() => handleOpenModal(submission)}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-10 bg-white rounded-lg shadow-sm">
+                        <h3 className="text-xl font-medium text-gray-800">All caught up!</h3>
+                        <p className="text-gray-500 mt-2">There are no new submissions to verify.</p>
+                    </div>
+                )}
+            </section>
+            
+            {/* Section for Verification History */}
+            <section className="mt-16">
+                 <h3 className="text-2xl font-semibold text-gray-700 mb-4 border-b pb-2">Your Recent Activity</h3>
+                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    {/* Column for Verified Plants */}
+                    <div>
+                        <h4 className="text-xl font-medium text-green-700 mb-3">Recently Verified ({verifiedHistory.length})</h4>
+                        {verifiedHistory.length > 0 ? (
+                            <div className="space-y-4">
+                                {verifiedHistory.map(item => <HistoryCard key={item._id} submission={item} />)}
+                            </div>
+                        ) : (
+                            <p className="text-gray-500 text-sm mt-4">No verified plants in your recent history.</p>
+                        )}
+                    </div>
+                    {/* Column for Rejected Plants */}
+                    <div>
+                        <h4 className="text-xl font-medium text-red-700 mb-3">Recently Rejected ({rejectedHistory.length})</h4>
+                        {rejectedHistory.length > 0 ? (
+                            <div className="space-y-4">
+                                {rejectedHistory.map(item => <HistoryCard key={item._id} submission={item} />)}
+                            </div>
+                        ) : (
+                            <p className="text-gray-500 text-sm mt-4">No rejected plants in your recent history.</p>
+                        )}
+                    </div>
+                 </div>
+            </section>
+
+            {/* The Verification Modal (rendered here but only visible when isModalOpen is true) */}
             <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Verify Plant Submission">
                 {selectedSubmission && (
                     <VerificationForm 
@@ -103,22 +150,19 @@ function ExpertDashboard() {
 
 // --- Nested Component for the Modal's Form ---
 const VerificationForm = ({ submission, onUpdate, onClose }) => {
-    const [action, setAction] = useState('approve'); // 'approve', 'reject', 'correct'
+    const [action, setAction] = useState('approve');
     const [correctedName, setCorrectedName] = useState('');
     const [verificationMethod, setVerificationMethod] = useState('');
     const [rejectionReason, setRejectionReason] = useState('');
     const [expertNotes, setExpertNotes] = useState('');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
         setLoading(true);
         const payload = { action, correctedName, verificationMethod, rejectionReason, expertNotes };
-        // The onUpdate function is passed from the parent and will handle the API call
-        await onUpdate(submission._id, payload); 
-        setLoading(false);
+        await onUpdate(submission._id, payload);
+        // Don't set loading to false here, as the parent component will close the modal
     };
     
     return (
@@ -153,7 +197,7 @@ const VerificationForm = ({ submission, onUpdate, onClose }) => {
              {action === 'reject' && (
                  <div>
                     <label className="block text-sm font-medium text-gray-700">Rejection Reason (Required)</label>
-                    <input type="text" value={rejectionReason} onChange={e => setRejectionReason(e.target.value)} placeholder="e.g., Misidentified, it is a non-medicinal lookalike" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500" />
+                    <input type="text" value={rejectionReason} onChange={e => setRejectionReason(e.target.value)} placeholder="e.g., Misidentified, non-medicinal lookalike" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500" />
                 </div>
             )}
 
@@ -162,11 +206,9 @@ const VerificationForm = ({ submission, onUpdate, onClose }) => {
                 <textarea value={expertNotes} onChange={e => setExpertNotes(e.target.value)} rows="3" placeholder="e.g., Found in the upper regions of..." className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"></textarea>
             </div>
 
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-
             <div className="flex justify-end space-x-3 pt-4">
                 <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:opacity-50" disabled={loading}>Cancel</button>
-                <button type="submit" disabled={loading} className="inline-flex justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400">
+                <button type="submit" disabled={loading} className="inline-flex justify-center items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400">
                     {loading && <Spinner />}
                     {loading ? "Submitting..." : "Submit Verification"}
                 </button>

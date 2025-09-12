@@ -132,3 +132,21 @@ exports.verifySubmission = async (req, res) => {
         res.status(500).json({ message: 'Error verifying submission.', error: error.message });
     }
 };
+
+exports.getExpertHistory = async (req, res) => {
+    try {
+        const expertId = req.user.id; // From auth middleware
+
+        const history = await PlantSubmission.find({ 
+            verifiedBy: expertId, // Only find submissions verified by this expert
+            status: { $in: ['verified', 'rejected'] } // Only get 'verified' or 'rejected'
+        })
+        .populate('submittedBy', 'username')
+        .sort({ updatedAt: -1 }) // Sort by when it was last updated (i.e., verified)
+        .limit(20); // Limit to the last 20 for performance
+
+        res.status(200).json(history);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching expert history.', error: error.message });
+    }
+};

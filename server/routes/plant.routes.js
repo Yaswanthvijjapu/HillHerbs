@@ -12,4 +12,8 @@ router.get('/pending', authMiddleware, isExpert, plantController.getPendingSubmi
 // POST to verify a specific submission
 router.post('/verify/:id', authMiddleware, isExpert, plantController.verifySubmission);
 
+// GET expert's verification history
+router.get('/history/expert', authMiddleware, isExpert, plantController.getExpertHistory);
+
+
 module.exports = router;
