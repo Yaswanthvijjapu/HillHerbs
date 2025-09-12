@@ -12,7 +12,12 @@ const plantSubmissionSchema = new mongoose.Schema({
     status: { type: String, enum: ['pending_expert_verification', 'verified', 'rejected'], default: 'pending_expert_verification' },
     verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     finalPlantName: { type: String },
-    expertNotes: { type: String },
+    
+    expertNotes: { type: String, trim: true },
+    // A specific reason for rejection
+    rejectionReason: { type: String, trim: true },
+    // How the expert confirmed the identity (e.g., "Book Reference", "Personal Experience")
+    verificationMethod: { type: String, trim: true },
 
 }, { timestamps: true });
 

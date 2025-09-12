@@ -4,9 +4,10 @@ const getPending = () => {
     return api.get('/plants/pending');
 };
 
-const verify = (id, action, correctedName = '') => {
-    return api.post(`/plants/verify/${id}`, { action, correctedName });
+const verify = (id, payload) => {
+    return api.post(`/plants/verify/${id}`, payload);
 };
+
 
 const plantService = {
     getPending,
