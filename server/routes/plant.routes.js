@@ -15,5 +15,9 @@ router.post('/verify/:id', authMiddleware, isExpert, plantController.verifySubmi
 // GET expert's verification history
 router.get('/history/expert', authMiddleware, isExpert, plantController.getExpertHistory);
 
+// GET all verified plants
+router.get('/verified', plantController.getVerifiedPlants);
+
+
 
 module.exports = router;

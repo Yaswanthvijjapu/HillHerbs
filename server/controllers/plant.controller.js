@@ -72,63 +72,65 @@ exports.getPendingSubmissions = async (req, res) => {
     }
 };
 // --- NEW FUNCTION 2: Verify a single submission ---
+
 exports.verifySubmission = async (req, res) => {
     try {
         const { id } = req.params;
-        // --- EXPANDED DESTRUCTURING ---
-        // Get the new fields from the request body
-        const { action, correctedName, verificationMethod, rejectionReason, expertNotes } = req.body;
+        const { action, correctedName, verificationMethod, rejectionReason, expertNotes, medicinalUses, importance } = req.body;
         const expertId = req.user.id;
 
         const submission = await PlantSubmission.findById(id);
         if (!submission) {
             return res.status(404).json({ message: 'Submission not found.' });
         }
-        
-        // --- VALIDATION FOR NEW FIELDS ---
+
+        // --- Prepare the update object ---
+        const updateData = {
+            verifiedBy: expertId,
+            expertNotes: expertNotes || '', // Ensure it's not undefined
+        };
+
         if (action === 'approve' || action === 'correct') {
-            if (!verificationMethod) {
-                return res.status(400).json({ message: 'Verification method is required when approving a plant.' });
+            if (!verificationMethod || !medicinalUses) {
+                return res.status(400).json({ message: 'Verification method and medicinal uses are required.' });
             }
-        }
-        if (action === 'reject') {
-            if (!rejectionReason) {
-                return res.status(400).json({ message: 'A reason is required when rejecting a plant.' });
-            }
-        }
+            updateData.status = 'verified';
+            updateData.verificationMethod = verificationMethod;
+            updateData.medicinalUses = medicinalUses;
+            updateData.importance = importance || ''; // Ensure it's not undefined
 
-        switch (action) {
-            case 'approve':
-                submission.status = 'verified';
-                submission.finalPlantName = submission.aiSuggestedName;
-                submission.verificationMethod = verificationMethod;
-                break;
-            case 'reject':
-                submission.status = 'rejected';
-                submission.rejectionReason = rejectionReason;
-                break;
-            case 'correct':
+            if (action === 'correct') {
                 if (!correctedName) {
-                    return res.status(400).json({ message: 'Corrected name is required for this action.' });
+                    return res.status(400).json({ message: 'Corrected name is required.' });
                 }
-                submission.status = 'verified';
-                submission.finalPlantName = correctedName;
-                submission.verificationMethod = verificationMethod;
-                break;
-            default:
-                return res.status(400).json({ message: 'Invalid action.' });
-        }
-
-        submission.verifiedBy = expertId;
-        // Save the optional expert notes regardless of action
-        if (expertNotes) {
-            submission.expertNotes = expertNotes;
+                updateData.finalPlantName = correctedName;
+            } else {
+                updateData.finalPlantName = submission.aiSuggestedName;
+            }
+        } else if (action === 'reject') {
+            if (!rejectionReason) {
+                return res.status(400).json({ message: 'A rejection reason is required.' });
+            }
+            updateData.status = 'rejected';
+            updateData.rejectionReason = rejectionReason;
+            // Clear fields that don't apply to rejected items
+            updateData.finalPlantName = ''; 
+            updateData.verificationMethod = '';
+            updateData.medicinalUses = '';
+            updateData.importance = '';
+        } else {
+            return res.status(400).json({ message: 'Invalid action.' });
         }
         
-        await submission.save();
+        // --- Apply the update and save ---
+        Object.assign(submission, updateData);
+        const updatedSubmission = await submission.save();
 
-        res.status(200).json({ message: `Submission successfully ${submission.status}.`, submission });
+        res.status(200).json({ message: `Submission successfully updated.`, submission: updatedSubmission });
     } catch (error) {
+        console.error("--- VERIFICATION SUBMISSION ERROR ---");
+        console.error(error);
+        console.error("-------------------------------------");
         res.status(500).json({ message: 'Error verifying submission.', error: error.message });
     }
 };
@@ -148,5 +150,23 @@ exports.getExpertHistory = async (req, res) => {
         res.status(200).json(history);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching expert history.', error: error.message });
+    }
+};
+
+exports.getVerifiedPlants = async (req, res) => {
+    try {
+        const verifiedPlants = await PlantSubmission.find({ status: 'verified' })
+            .select('finalPlantName imageURL location medicinalUses importance')
+            .sort({ finalPlantName: 1 });
+            
+        res.status(200).json(verifiedPlants);
+    } catch (error) {
+        // This will log the DETAILED error to your backend console
+        console.error("--- ERROR FETCHING VERIFIED PLANTS ---");
+        console.error(error);
+        console.error("--------------------------------------");
+        
+        // This sends the generic 500 error back to the frontend
+        res.status(500).json({ message: 'Internal Server Error: Could not fetch verified plants.' });
     }
 };

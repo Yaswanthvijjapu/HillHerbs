@@ -14,11 +14,14 @@ const getHistory = () => {
     return api.get('/plants/history/expert');
 };
 
+const getVerified = () => api.get('/plants/verified');
+
 
 const plantService = {
     getPending,
     verify,
     getHistory,
+    getVerified
 };
 
 export default plantService;

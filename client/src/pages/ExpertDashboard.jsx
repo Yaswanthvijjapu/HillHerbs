@@ -148,23 +148,28 @@ function ExpertDashboard() {
 }
 
 
-// --- Nested Component for the Modal's Form ---
+// --- Nested Component for the Modal's Form 
 const VerificationForm = ({ submission, onUpdate, onClose }) => {
     const [action, setAction] = useState('approve');
     const [correctedName, setCorrectedName] = useState('');
     const [verificationMethod, setVerificationMethod] = useState('');
     const [rejectionReason, setRejectionReason] = useState('');
     const [expertNotes, setExpertNotes] = useState('');
+    const [medicinalUses, setMedicinalUses] = useState('');
+    const [importance, setImportance] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        const payload = { action, correctedName, verificationMethod, rejectionReason, expertNotes };
+        const payload = { action, correctedName, verificationMethod, rejectionReason, expertNotes, medicinalUses, importance };
         await onUpdate(submission._id, payload);
-        // Don't set loading to false here, as the parent component will close the modal
+        // Parent component will handle closing and loading state
     };
     
+    // Base classes for all input fields for consistency
+    const inputClasses = "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm";
+
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -173,37 +178,50 @@ const VerificationForm = ({ submission, onUpdate, onClose }) => {
             </div>
 
             <div>
-                <label className="block text-sm font-medium text-gray-700">Action</label>
-                <select value={action} onChange={(e) => setAction(e.target.value)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md">
+                <label htmlFor="action-select" className="block text-sm font-medium text-gray-700">Action</label>
+                <select id="action-select" value={action} onChange={(e) => setAction(e.target.value)} className={inputClasses}>
                     <option value="approve">Approve AI Suggestion</option>
                     <option value="correct">Correct & Approve</option>
                     <option value="reject">Reject Submission</option>
                 </select>
             </div>
 
-            {/* Conditional Fields based on Action */}
+            {/* --- Conditional Fields for APPROVE or CORRECT --- */}
             {(action === 'approve' || action === 'correct') && (
-                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Verification Method (Required)</label>
-                    <input type="text" value={verificationMethod} onChange={e => setVerificationMethod(e.target.value)} placeholder="e.g., Cross-referenced with 'Ayurvedic Pharmacopoeia'" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500" />
+                <div className="space-y-4 p-4 bg-gray-50 rounded-md border">
+                    {action === 'correct' && (
+                         <div>
+                            <label htmlFor="correctedName" className="block text-sm font-medium text-gray-700">Correct Plant Name (Required)</label>
+                            <input id="correctedName" type="text" value={correctedName} onChange={e => setCorrectedName(e.target.value)} placeholder="Enter the correct name" required className={inputClasses} />
+                        </div>
+                    )}
+                    <div>
+                        <label htmlFor="verificationMethod" className="block text-sm font-medium text-gray-700">Verification Method (Required)</label>
+                        <input id="verificationMethod" type="text" value={verificationMethod} onChange={e => setVerificationMethod(e.target.value)} placeholder="e.g., Cross-referenced with 'Ayurvedic Pharmacopoeia'" required className={inputClasses} />
+                    </div>
+                    <div>
+                        <label htmlFor="medicinalUses" className="block text-sm font-medium text-gray-700">Medicinal Uses (Required)</label>
+                        <textarea id="medicinalUses" value={medicinalUses} onChange={e => setMedicinalUses(e.target.value)} rows="4" placeholder="e.g., Used for treating skin ailments, improving digestion..." required className={inputClasses}></textarea>
+                    </div>
+                    <div>
+                        <label htmlFor="importance" className="block text-sm font-medium text-gray-700">Importance & Harvesting Notes (Optional)</label>
+                        <textarea id="importance" value={importance} onChange={e => setImportance(e.target.value)} rows="3" placeholder="e.g., Rare species, harvest only mature leaves..." className={inputClasses}></textarea>
+                    </div>
                 </div>
             )}
-            {action === 'correct' && (
-                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Correct Plant Name (Required)</label>
-                    <input type="text" value={correctedName} onChange={e => setCorrectedName(e.target.value)} placeholder="Enter the correct name" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500" />
-                </div>
-            )}
+             
+             {/* --- Conditional Field for REJECT --- */}
              {action === 'reject' && (
-                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Rejection Reason (Required)</label>
-                    <input type="text" value={rejectionReason} onChange={e => setRejectionReason(e.target.value)} placeholder="e.g., Misidentified, non-medicinal lookalike" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500" />
+                 <div className="p-4 bg-gray-50 rounded-md border">
+                    <label htmlFor="rejectionReason" className="block text-sm font-medium text-gray-700">Rejection Reason (Required)</label>
+                    <input id="rejectionReason" type="text" value={rejectionReason} onChange={e => setRejectionReason(e.target.value)} placeholder="e.g., Misidentified, non-medicinal lookalike" required className={inputClasses} />
                 </div>
             )}
 
+            {/* --- Field for Additional Notes (Common to all actions) --- */}
             <div>
-                <label className="block text-sm font-medium text-gray-700">Additional Notes (Optional)</label>
-                <textarea value={expertNotes} onChange={e => setExpertNotes(e.target.value)} rows="3" placeholder="e.g., Found in the upper regions of..." className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"></textarea>
+                <label htmlFor="expertNotes" className="block text-sm font-medium text-gray-700">Additional Notes (Optional)</label>
+                <textarea id="expertNotes" value={expertNotes} onChange={e => setExpertNotes(e.target.value)} rows="3" placeholder="e.g., Found in the upper regions of..." className={inputClasses}></textarea>
             </div>
 
             <div className="flex justify-end space-x-3 pt-4">
@@ -216,5 +234,4 @@ const VerificationForm = ({ submission, onUpdate, onClose }) => {
         </form>
     );
 }
-
 export default ExpertDashboard;
