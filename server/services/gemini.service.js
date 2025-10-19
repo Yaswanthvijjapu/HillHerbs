@@ -2,7 +2,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const fs = require("fs");
 require('dotenv').config();
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY); 
 
 function fileToGenerativePart(path, mimeType) {
     return {
@@ -14,7 +14,7 @@ function fileToGenerativePart(path, mimeType) {
 }
 
 async function getAiPlantName(imagePath, mimeType) {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
      const prompt = `
       Analyze the plant in this image and provide a structured response.
       1. Identify the single, most prominent plant.
