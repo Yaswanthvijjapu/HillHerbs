@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import plantService from '../services/plantService';
 import Spinner from '../components/shared/Spinner';
-import PlantCard from '../components/knowledge-hub/PlantCard'; // Import our new card
+import PlantCard from '../components/knowledge-hub/PlantCard'; 
 import { HelpCircle } from 'lucide-react';
 
 function KnowledgeHubPage() {

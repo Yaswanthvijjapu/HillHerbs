@@ -1,3 +1,4 @@
+// client/src/pages/LoginPage.jsx
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -15,9 +16,13 @@ function LoginPage() {
         setError('');
         setLoading(true);
         try {
-            const { user } = await login(username, password);
+            // --- THE FIX ---
+            // The 'login' function returns the user object directly.
+            // So, we assign it directly to a variable.
+            const loggedInUser = await login(username, password);
             
-            if (user.role === 'expert') {
+            // Now, we check the role on this new variable.
+            if (loggedInUser.role === 'expert') {
                 navigate('/expert-dashboard');
             } else {
                 navigate('/dashboard');
@@ -30,6 +35,7 @@ function LoginPage() {
     };
 
     return (
+        // --- ALL OF YOUR BEAUTIFUL JSX REMAINS EXACTLY THE SAME ---
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-cyan-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8">
                 <div className="text-center">

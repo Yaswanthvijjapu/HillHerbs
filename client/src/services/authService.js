@@ -13,10 +13,16 @@ const logout = () => {
     localStorage.removeItem('user');
 };
 
+const getMe = () => {
+    return api.get('/auth/me');
+};
+
+
 const authService = {
     register,
     login,
     logout,
+    getMe
 };
 
 export default authService;

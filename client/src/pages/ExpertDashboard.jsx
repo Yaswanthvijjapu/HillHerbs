@@ -4,9 +4,12 @@ import SubmissionCard from '../components/dashboard/SubmissionCard';
 import HistoryCard from '../components/dashboard/HistoryCard';
 import Spinner from '../components/shared/Spinner';
 import Modal from '../components/shared/Modal';
+import { useAuth } from '../hooks/useAuth'; 
+import { Briefcase, Mail, Phone, Award, User, BookText } from 'lucide-react'; 
 
 // --- Main Dashboard Component ---
 function ExpertDashboard() {
+    const { user } = useAuth();
     // --- State Management ---
     const [pendingSubmissions, setPendingSubmissions] = useState([]);
     const [history, setHistory] = useState([]);
@@ -79,6 +82,10 @@ function ExpertDashboard() {
     return (
         <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-gray-800 mb-2">Expert Verification Dashboard</h2>
+
+           
+
+            
             <p className="text-gray-600 mb-8">Review and validate plant submissions from the community.</p>
 
             {error && <p className="text-red-600 bg-red-50 p-3 rounded-md text-sm text-center mb-6">{error}</p>}
