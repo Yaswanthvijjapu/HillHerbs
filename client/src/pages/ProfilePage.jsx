@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import api from '../services/api';
 import Spinner from '../components/shared/Spinner';
-import { User, Mail, Phone, Award, Briefcase, Clock, BookText, FileText, Leaf } from 'lucide-react';
+import { User, Mail, Phone, Award, Briefcase, Clock, BookText, Leaf } from 'lucide-react';
 
 // A helper component for displaying each detail item to avoid repetition
 const ProfileDetail = ({ icon, label, value, fullWidth = false }) => {
@@ -21,6 +22,7 @@ const ProfileDetail = ({ icon, label, value, fullWidth = false }) => {
 // Main Profile Page Component
 function ProfilePage() {
     const { user, setUser, loading: authLoading } = useAuth();
+    const navigate = useNavigate();
     
     // State for UI control
     const [isEditing, setIsEditing] = useState(false);
@@ -28,7 +30,6 @@ function ProfilePage() {
     const [editLoading, setEditLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-
     // Pre-fill the form with the user's current data when the component loads
     useEffect(() => {
         if (user) {
@@ -38,7 +39,7 @@ function ProfilePage() {
                 phoneNumber: user.phoneNumber || '',
                 expertiseArea: user.expertiseArea || '',
                 workplace: user.workplace || '',
-                yearsOfExperience: user.yearsOfExperience || 0,
+                yearsOfExperience: user.yearsOfExperience ?? '',
                 bio: user.bio || '',
             });
         }
@@ -56,6 +57,7 @@ function ProfilePage() {
         try {
             const response = await api.put('/auth/profile', formData);
             setUser(response.data); // Update the global user state with fresh data
+            localStorage.setItem('user', JSON.stringify(response.data));
             setSuccess('Profile updated successfully!');
             setTimeout(() => {
                 setIsEditing(false); // Switch back to view mode after a short delay
@@ -87,6 +89,13 @@ function ProfilePage() {
                     <p className="mt-1 text-lg text-green-600 font-semibold capitalize">
                         {isExpert ? 'Expert Contributor' : 'Community Member'}
                     </p>
+                    <button
+                        type="button"
+                        onClick={() => navigate(isExpert ? '/expert-dashboard' : '/dashboard')}
+                        className="mt-6 inline-flex items-center px-4 py-2 border border-green-600 text-green-700 font-semibold rounded-md hover:bg-green-50 transition-colors"
+                    >
+                        Back to Dashboard
+                    </button>
                 </div>
 
                 {/* --- Details/Edit Card --- */}
@@ -121,20 +130,6 @@ function ProfilePage() {
                                             <ProfileDetail icon={<Briefcase className="text-green-500"/>} label="Workplace" value={user.workplace} />
                                             <ProfileDetail icon={<Clock className="text-green-500"/>} label="Years of Experience" value={user.yearsOfExperience ? `${user.yearsOfExperience} years` : null} />
                                             <ProfileDetail icon={<BookText className="text-green-500"/>} label="Bio" value={user.bio} fullWidth={true} />
-                                            <div className="sm:col-span-2">
-                                                <div className="flex items-start">
-                                                    <div className="flex-shrink-0 text-green-600"><FileText /></div>
-                                                    <div className="ml-4">
-                                                        <dt className="text-sm font-medium text-gray-500">Proof of ID</dt>
-                                                        <dd className="mt-1">
-                                                            <a href={user.idProofURL} target="_blank" rel="noopener noreferrer" download={`ID_Proof_${user.username}`}
-                                                                className="inline-block bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors">
-                                                                View / Download
-                                                            </a>
-                                                        </dd>
-                                                    </div>
-                                                </div>
-                                            </div>
                                         </>
                                     ) : (
                                         <div className="sm:col-span-2 bg-green-50 p-4 rounded-lg border border-green-200">

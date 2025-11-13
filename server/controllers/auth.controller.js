@@ -1,7 +1,11 @@
 const User = require('../models/user.model');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const path = require('path');
+const fs = require('fs');
 const { cloudinary } = require('../config/cloudinary.config');
+
+const fetch = (...args) => import('node-fetch').then(({ default: fn }) => fn(...args));
 
 exports.register = async (req, res) => {
     // We create this to hold the path of the temp file
@@ -174,5 +178,78 @@ exports.updateProfile = async (req, res) => {
         }
         console.error("Update Profile Error:", error);
         res.status(500).json({ message: 'Error updating user profile.' });
+    }
+};
+
+exports.getIdProof = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('idProofURL username');
+
+        if (!user || !user.idProofURL) {
+            return res.status(404).json({ message: 'No ID proof on record.' });
+        }
+
+        const proofUrl = user.idProofURL;
+
+        // Remote storage (Cloudinary, etc.)
+        if (/^https?:\/\//i.test(proofUrl)) {
+            const response = await fetch(proofUrl);
+
+            if (!response.ok) {
+                const errorBody = await response.text().catch(() => '');
+                console.error('Remote ID proof fetch failed', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    bodyPreview: errorBody?.slice(0, 200)
+                });
+                return res.status(response.status).json({
+                    message: `Unable to retrieve stored ID proof. Upstream responded with ${response.status} ${response.statusText || ''}`.trim()
+                });
+            }
+
+            const arrayBuffer = await response.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            const contentType = response.headers.get('content-type') || 'application/octet-stream';
+            const urlPath = new URL(proofUrl).pathname;
+            const fileName = path.basename(urlPath) || `ID_Proof_${user.username}`;
+
+            res.setHeader('Content-Type', contentType);
+            res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+            return res.send(buffer);
+        }
+
+        // Base64 data URI fallback
+        if (/^data:/i.test(proofUrl)) {
+            const [metadata, base64Data] = proofUrl.split(',');
+            if (!base64Data) {
+                return res.status(400).json({ message: 'Stored ID proof is malformed.' });
+            }
+
+            const mimeMatch = metadata.match(/^data:([^;]+);/i);
+            const mimeType = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+            const buffer = Buffer.from(base64Data, 'base64');
+
+            res.setHeader('Content-Type', mimeType);
+            res.setHeader('Content-Disposition', `inline; filename="ID_Proof_${user.username}"`);
+            return res.send(buffer);
+        }
+
+        // Local filesystem storage
+        const uploadsDir = path.resolve(__dirname, '..', 'uploads');
+        const normalisedRelativePath = proofUrl
+            .replace(/^[\\/]+/, '')
+            .replace(/\.\.(?:\\|\/)/g, '')
+            .replace(/\\/g, '/');
+        const filePath = path.resolve(uploadsDir, normalisedRelativePath);
+
+        if (!filePath.startsWith(uploadsDir) || !fs.existsSync(filePath)) {
+            return res.status(404).json({ message: 'Stored ID proof not found on server.' });
+        }
+
+        res.setHeader('Content-Disposition', `inline; filename="${path.basename(filePath)}"`);
+        return res.sendFile(filePath);
+    } catch (error) {
+        console.error('Get ID Proof Error:', error);
+        return res.status(500).json({ message: 'Failed to load ID proof.' });
     }
 };
