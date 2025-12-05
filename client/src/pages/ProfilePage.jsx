@@ -122,6 +122,7 @@ function ProfilePage() {
                                 // --- VIEW MODE ---
                                 <dl className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
                                     <ProfileDetail icon={<User className="text-green-500"/>} label="Username" value={user.username} />
+                                    <ProfileDetail icon={<Award className="text-green-500"/>} label="Role" value={isExpert ? 'Expert Contributor' : 'Community Member'} />
                                     {isExpert ? (
                                         <>
                                             <ProfileDetail icon={<Mail className="text-green-500"/>} label="Email Address" value={user.email} />
