@@ -1,12 +1,13 @@
 // client/src/pages/RegisterPage.jsx
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import { FileUp } from 'lucide-react'; // For a nice upload icon
 import { useAuth } from '../hooks/useAuth';
 
 
 function RegisterPage() {
+    const [searchParams] = useSearchParams();
     // State for the form fields
     const [formData, setFormData] = useState({
         fullName: '',
@@ -29,6 +30,15 @@ function RegisterPage() {
     const [loading, setLoading] = useState(false);
     
     const navigate = useNavigate();
+    const { loginWithToken } = useAuth();
+
+    // Check for expert parameter in URL
+    useEffect(() => {
+        const expertParam = searchParams.get('expert');
+        if (expertParam === 'true') {
+            setIsExpertRegistration(true);
+        }
+    }, [searchParams]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });

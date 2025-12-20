@@ -48,7 +48,7 @@ function HeroPage() {
                             <ArrowRight className="ml-2 h-5 w-5" />
                         </button>
                         <button
-                            onClick={() => navigate('/login')}
+                            onClick={() => navigate('/register?expert=true')}
                             className="inline-flex items-center px-8 py-4 border-2 border-green-600 text-green-700 text-lg font-bold rounded-full hover:bg-green-50 transition-all shadow-lg hover:shadow-xl"
                         >
                             Join as Expert
