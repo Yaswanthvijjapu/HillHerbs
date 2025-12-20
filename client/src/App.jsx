@@ -9,6 +9,7 @@ import Navbar from './components/layout/Navbar';
 import ExpertDashboard from './pages/ExpertDashboard';
 import KnowledgeHubPage from './pages/KnowledgeHubPage';
 import ProfilePage from './pages/ProfilePage'; 
+import HeroPage from './pages/HeroPage'; 
 
 // Layout component to wrap pages with the Navbar
 const AppLayout = () => (
@@ -25,6 +26,9 @@ function App() {
         <AuthProvider>
             <Router>
                 <Routes>
+                    {/* Public Hero Page */}
+                    <Route path="/" element={<HeroPage />} />
+                    
                     {/* Routes without Navbar for fullscreen feel */}
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
@@ -42,7 +46,7 @@ function App() {
 
 
                     {/* Default route */}
-                    <Route path="*" element={<Navigate to="/login" />} />
+                    <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
             </Router>
         </AuthProvider>
