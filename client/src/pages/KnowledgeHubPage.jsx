@@ -1,20 +1,40 @@
 // client/src/pages/KnowledgeHubPage.jsx
 import React, { useState, useEffect } from 'react';
 import plantService from '../services/plantService';
-import PlantCard from '../components/knowledge-hub/PlantCard'; 
+import PlantCard from '../components/knowledge-hub/PlantCard';
+import PlantMapModal from '../components/knowledge-hub/PlantMapModal'; // Import the Map Modal
 import { 
   HelpCircle, Leaf, Search, Filter, Shield, 
   Database, TrendingUp, Globe, Award, Hash, Eye 
 } from 'lucide-react';
 
 function KnowledgeHubPage() {
+    // --- Data State ---
     const [plants, setPlants] = useState([]);
     const [filteredPlants, setFilteredPlants] = useState([]);
-    const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
+
+    // --- Search & Filter State ---
+    const [searchTerm, setSearchTerm] = useState('');
     const [activeFilter, setActiveFilter] = useState('all');
     const [showFilters, setShowFilters] = useState(false);
 
+    // --- Map Modal State ---
+    const [isMapOpen, setIsMapOpen] = useState(false);
+    const [selectedPlantForMap, setSelectedPlantForMap] = useState(null);
+
+    // --- Handlers for Map ---
+    const handleOpenMap = (plant) => {
+        setSelectedPlantForMap(plant);
+        setIsMapOpen(true);
+    };
+
+    const handleCloseMap = () => {
+        setIsMapOpen(false);
+        setSelectedPlantForMap(null);
+    };
+
+    // --- Fetch Data ---
     useEffect(() => {
         const fetchVerifiedPlants = async () => {
             try {
@@ -30,16 +50,17 @@ function KnowledgeHubPage() {
         fetchVerifiedPlants();
     }, []);
     
-    // Filter plants based on search term and active filter
+    // --- Filter Logic ---
     useEffect(() => {
         let results = plants.filter(plant =>
-            plant.finalPlantName.toLowerCase().includes(searchTerm.toLowerCase())
+            plant.finalPlantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (plant.medicinalUses && plant.medicinalUses.toLowerCase().includes(searchTerm.toLowerCase()))
         );
         
-        // Apply additional filters if needed
+        // Placeholder for future category filtering logic
         if (activeFilter !== 'all') {
-            // You can add more filter logic here if needed
-            results = results; // Keep as is for now, can expand later
+            // If you add categories to your DB later, filter here.
+            // Example: results = results.filter(p => p.category === activeFilter);
         }
         
         setFilteredPlants(results);
@@ -60,11 +81,11 @@ function KnowledgeHubPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 relative">
             <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
             
             <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-                {/* Header Section */}
+                {/* --- Header Section --- */}
                 <div className="text-center mb-12">
                     <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-full text-sm font-semibold mb-6 shadow-lg">
                         <Database className="h-4 w-4 mr-2" />
@@ -77,13 +98,13 @@ function KnowledgeHubPage() {
                     
                     <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
                         Explore our collection of verified medicinal plants from hill regions, 
-                        complete with expert insights and conservation data
+                        complete with expert insights and conservation data.
                     </p>
                 </div>
 
-                {/* Stats Banner */}
+                {/* --- Stats Banner --- */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-emerald-100">
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-emerald-100 hover:shadow-xl transition-shadow">
                         <div className="flex items-center">
                             <div className="p-3 bg-emerald-100 rounded-xl mr-4">
                                 <Leaf className="h-6 w-6 text-emerald-600" />
@@ -95,7 +116,7 @@ function KnowledgeHubPage() {
                         </div>
                     </div>
                     
-                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-emerald-100">
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-emerald-100 hover:shadow-xl transition-shadow">
                         <div className="flex items-center">
                             <div className="p-3 bg-blue-100 rounded-xl mr-4">
                                 <Shield className="h-6 w-6 text-blue-600" />
@@ -107,7 +128,7 @@ function KnowledgeHubPage() {
                         </div>
                     </div>
                     
-                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-emerald-100">
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-emerald-100 hover:shadow-xl transition-shadow">
                         <div className="flex items-center">
                             <div className="p-3 bg-purple-100 rounded-xl mr-4">
                                 <Globe className="h-6 w-6 text-purple-600" />
@@ -119,7 +140,7 @@ function KnowledgeHubPage() {
                         </div>
                     </div>
                     
-                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-emerald-100">
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-emerald-100 hover:shadow-xl transition-shadow">
                         <div className="flex items-center">
                             <div className="p-3 bg-amber-100 rounded-xl mr-4">
                                 <TrendingUp className="h-6 w-6 text-amber-600" />
@@ -132,7 +153,7 @@ function KnowledgeHubPage() {
                     </div>
                 </div>
 
-                {/* Search and Filter Section */}
+                {/* --- Search and Filter Section --- */}
                 <div className="mb-12">
                     <div className="bg-white rounded-2xl shadow-xl p-6 border border-emerald-100">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -158,15 +179,15 @@ function KnowledgeHubPage() {
                             </button>
                         </div>
 
-                        {/* Filter Options */}
+                        {/* Filter Options (Expandable) */}
                         {showFilters && (
-                            <div className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
+                            <div className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200 animate-fadeIn">
                                 <div className="flex items-center mb-4">
                                     <Filter className="h-5 w-5 text-emerald-600 mr-2" />
                                     <h4 className="font-bold text-gray-900">Filter Options</h4>
                                 </div>
                                 <div className="flex flex-wrap gap-3">
-                                    {['all', 'recent', 'rare', 'common', 'herbs', 'trees', 'shrubs'].map((filter) => (
+                                    {['all', 'rare', 'common', 'herbs', 'trees', 'shrubs'].map((filter) => (
                                         <button
                                             key={filter}
                                             onClick={() => setActiveFilter(filter)}
@@ -203,12 +224,16 @@ function KnowledgeHubPage() {
                     </div>
                 </div>
 
-                {/* Plant Grid */}
+                {/* --- Plant Grid --- */}
                 {filteredPlants.length > 0 ? (
                     <div className="mb-16">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {filteredPlants.map(plant => (
-                                <PlantCard key={plant._id} plant={plant} />
+                                <PlantCard 
+                                    key={plant._id} 
+                                    plant={plant} 
+                                    onMapClick={handleOpenMap} // PASSING THE MAP HANDLER
+                                />
                             ))}
                         </div>
                     </div>
@@ -234,7 +259,7 @@ function KnowledgeHubPage() {
                     </div>
                 )}
 
-                {/* Conservation Contact Section */}
+                {/* --- Conservation Contact Section --- */}
                 <div className="mb-16">
                     <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl shadow-2xl overflow-hidden">
                         <div className="p-10 md:p-16 text-center text-white">
@@ -281,7 +306,7 @@ function KnowledgeHubPage() {
                     </div>
                 </div>
 
-                {/* Protection Notice */}
+                {/* --- Protection Notice --- */}
                 <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-8 border border-gray-200">
                     <div className="flex items-start space-x-4">
                         <div className="flex-shrink-0">
@@ -305,6 +330,15 @@ function KnowledgeHubPage() {
                     </div>
                 </div>
             </div>
+
+            {/* --- MAP MODAL COMPONENT --- */}
+            {selectedPlantForMap && (
+                <PlantMapModal 
+                    isOpen={isMapOpen} 
+                    onClose={handleCloseMap} 
+                    plant={selectedPlantForMap} 
+                />
+            )}
         </div>
     );
 }
