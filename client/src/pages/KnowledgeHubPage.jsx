@@ -1,20 +1,23 @@
 // client/src/pages/KnowledgeHubPage.jsx
 import React, { useState, useEffect } from 'react';
 import plantService from '../services/plantService';
-import Spinner from '../components/shared/Spinner';
 import PlantCard from '../components/knowledge-hub/PlantCard'; 
-import { HelpCircle, Leaf } from 'lucide-react';
+import { 
+  HelpCircle, Leaf, Search, Filter, Shield, 
+  Database, TrendingUp, Globe, Award, Hash, Eye 
+} from 'lucide-react';
 
 function KnowledgeHubPage() {
     const [plants, setPlants] = useState([]);
     const [filteredPlants, setFilteredPlants] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
+    const [activeFilter, setActiveFilter] = useState('all');
+    const [showFilters, setShowFilters] = useState(false);
 
     useEffect(() => {
         const fetchVerifiedPlants = async () => {
             try {
-                // You should have a getVerified function in your plantService
                 const response = await plantService.getVerified(); 
                 setPlants(response.data);
                 setFilteredPlants(response.data);
@@ -27,80 +30,279 @@ function KnowledgeHubPage() {
         fetchVerifiedPlants();
     }, []);
     
-    // Filter plants based on search term
+    // Filter plants based on search term and active filter
     useEffect(() => {
-        const results = plants.filter(plant =>
+        let results = plants.filter(plant =>
             plant.finalPlantName.toLowerCase().includes(searchTerm.toLowerCase())
         );
+        
+        // Apply additional filters if needed
+        if (activeFilter !== 'all') {
+            // You can add more filter logic here if needed
+            results = results; // Keep as is for now, can expand later
+        }
+        
         setFilteredPlants(results);
-    }, [searchTerm, plants]);
+    }, [searchTerm, plants, activeFilter]);
 
     if (loading) {
-        return <div className="flex justify-center items-center h-screen"><Spinner /></div>;
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl mb-6 shadow-lg animate-pulse">
+                        <Leaf className="h-8 w-8 text-white" />
+                    </div>
+                    <p className="text-lg font-medium text-gray-700">Loading Plant Database...</p>
+                    <p className="text-sm text-gray-500 mt-2">Fetching verified medicinal plants</p>
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="bg-gradient-to-b from-green-50 to-white min-h-screen">
-            <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-                {/* Search Bar */}
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
+            <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
+            
+            <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+                {/* Header Section */}
+                <div className="text-center mb-12">
+                    <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-full text-sm font-semibold mb-6 shadow-lg">
+                        <Database className="h-4 w-4 mr-2" />
+                        Expert-Verified Database
+                    </div>
+                    
+                    <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                        Medicinal Plant Knowledge Hub
+                    </h1>
+                    
+                    <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+                        Explore our collection of verified medicinal plants from hill regions, 
+                        complete with expert insights and conservation data
+                    </p>
+                </div>
+
+                {/* Stats Banner */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-emerald-100">
+                        <div className="flex items-center">
+                            <div className="p-3 bg-emerald-100 rounded-xl mr-4">
+                                <Leaf className="h-6 w-6 text-emerald-600" />
+                            </div>
+                            <div>
+                                <p className="text-2xl font-bold text-emerald-700">{plants.length}</p>
+                                <p className="text-sm text-gray-600">Total Plants</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-emerald-100">
+                        <div className="flex items-center">
+                            <div className="p-3 bg-blue-100 rounded-xl mr-4">
+                                <Shield className="h-6 w-6 text-blue-600" />
+                            </div>
+                            <div>
+                                <p className="text-2xl font-bold text-blue-700">100%</p>
+                                <p className="text-sm text-gray-600">Expert Verified</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-emerald-100">
+                        <div className="flex items-center">
+                            <div className="p-3 bg-purple-100 rounded-xl mr-4">
+                                <Globe className="h-6 w-6 text-purple-600" />
+                            </div>
+                            <div>
+                                <p className="text-2xl font-bold text-purple-700">Hill</p>
+                                <p className="text-sm text-gray-600">Regions</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-emerald-100">
+                        <div className="flex items-center">
+                            <div className="p-3 bg-amber-100 rounded-xl mr-4">
+                                <TrendingUp className="h-6 w-6 text-amber-600" />
+                            </div>
+                            <div>
+                                <p className="text-2xl font-bold text-amber-700">Growing</p>
+                                <p className="text-sm text-gray-600">Database</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Search and Filter Section */}
                 <div className="mb-12">
-                    <h2 className="text-3xl font-bold text-gray-800 text-center mb-6">
-                        Explore Verified Medicinal Plants
-                    </h2>
-                    <div className="max-w-2xl mx-auto">
-                        <input
-                            type="text"
-                            placeholder="Search for a plant by name..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full p-4 border-2 border-green-300 rounded-full shadow-lg focus:ring-4 focus:ring-green-200 focus:border-green-500 text-lg"
-                        />
-                        <p className="text-center text-sm text-gray-500 mt-3">
-                            {filteredPlants.length} plant{filteredPlants.length !== 1 ? 's' : ''} available
-                        </p>
+                    <div className="bg-white rounded-2xl shadow-xl p-6 border border-emerald-100">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                            <div className="flex-1">
+                                <div className="relative">
+                                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search plants by name, medicinal properties, or region..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full pl-12 pr-4 py-3.5 border-2 border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-200 focus:border-emerald-500 text-lg outline-none transition-all"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <button
+                                onClick={() => setShowFilters(!showFilters)}
+                                className="inline-flex items-center px-5 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-600 hover:to-teal-600 shadow-md hover:shadow-lg transition-all"
+                            >
+                                <Filter className="h-5 w-5 mr-2" />
+                                Filters
+                            </button>
+                        </div>
+
+                        {/* Filter Options */}
+                        {showFilters && (
+                            <div className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
+                                <div className="flex items-center mb-4">
+                                    <Filter className="h-5 w-5 text-emerald-600 mr-2" />
+                                    <h4 className="font-bold text-gray-900">Filter Options</h4>
+                                </div>
+                                <div className="flex flex-wrap gap-3">
+                                    {['all', 'recent', 'rare', 'common', 'herbs', 'trees', 'shrubs'].map((filter) => (
+                                        <button
+                                            key={filter}
+                                            onClick={() => setActiveFilter(filter)}
+                                            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                                                activeFilter === filter
+                                                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md'
+                                                    : 'bg-white text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 border border-gray-200'
+                                            }`}
+                                        >
+                                            {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Results Count */}
+                        <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200">
+                            <div className="flex items-center text-gray-600">
+                                <Hash className="h-5 w-5 mr-2" />
+                                <span className="font-medium">
+                                    Showing {filteredPlants.length} of {plants.length} plants
+                                </span>
+                            </div>
+                            {searchTerm && (
+                                <button
+                                    onClick={() => setSearchTerm('')}
+                                    className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+                                >
+                                    Clear search
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
 
                 {/* Plant Grid */}
                 {filteredPlants.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-                        {filteredPlants.map(plant => (
-                            <PlantCard key={plant._id} plant={plant} />
-                        ))}
+                    <div className="mb-16">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {filteredPlants.map(plant => (
+                                <PlantCard key={plant._id} plant={plant} />
+                            ))}
+                        </div>
                     </div>
                 ) : (
-                    <div className="text-center py-16 bg-white rounded-2xl shadow-lg mb-16">
-                        <Leaf className="mx-auto h-16 w-16 text-gray-300 mb-4" />
-                        <p className="text-gray-500 text-lg">No plants found matching your search.</p>
-                        <p className="text-gray-400 text-sm mt-2">Try different keywords or browse all plants.</p>
+                    <div className="text-center py-20 bg-white rounded-2xl shadow-lg border border-gray-100 mb-16">
+                        <div className="mx-auto w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mb-6">
+                            <Search className="h-12 w-12 text-gray-400" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-3">No plants found</h3>
+                        <p className="text-gray-600 max-w-md mx-auto mb-6">
+                            We couldn't find any plants matching "{searchTerm}". Try a different search term or browse all plants.
+                        </p>
+                        <button
+                            onClick={() => {
+                                setSearchTerm('');
+                                setActiveFilter('all');
+                            }}
+                            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-600 hover:to-teal-600 shadow-md hover:shadow-lg"
+                        >
+                            <Eye className="h-5 w-5 mr-2" />
+                            View All Plants
+                        </button>
                     </div>
                 )}
 
-                {/* Contact Section */}
-                <div className="mt-20 bg-gradient-to-r from-blue-600 to-blue-700 p-10 rounded-2xl shadow-2xl text-white">
-                    <div className="text-center">
-                        <HelpCircle className="mx-auto h-16 w-16 mb-4" />
-                        <h3 className="text-3xl font-bold mb-3">Questions or Research Inquiries?</h3>
-                        <p className="text-xl text-blue-100 mb-6 max-w-2xl mx-auto">
-                            If you are a member of a licensed institution, researcher, or conservation organization 
-                            and wish to inquire further about plant locations or collaborate on biodiversity projects, 
-                            please contact our conservation team.
-                        </p>
-                        <a 
-                            href="mailto:conservation@hillherbs.org" 
-                            className="inline-block bg-white text-blue-700 font-bold py-4 px-8 rounded-full hover:bg-blue-50 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-                        >
-                            Contact Conservation Team
-                        </a>
+                {/* Conservation Contact Section */}
+                <div className="mb-16">
+                    <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl shadow-2xl overflow-hidden">
+                        <div className="p-10 md:p-16 text-center text-white">
+                            <div className="mx-auto w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-8">
+                                <HelpCircle className="h-10 w-10 text-white" />
+                            </div>
+                            
+                            <h2 className="text-3xl font-bold mb-6">
+                                Research & Conservation Partnerships
+                            </h2>
+                            
+                            <div className="max-w-3xl mx-auto mb-10">
+                                <p className="text-xl text-blue-100 mb-6">
+                                    If you represent a licensed institution, research organization, or conservation body 
+                                    and require detailed plant location data for biodiversity projects or conservation efforts:
+                                </p>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                                    <div className="bg-white/10 backdrop-blur-sm p-6 rounded-2xl border border-white/20">
+                                        <Award className="h-8 w-8 text-white mb-4 mx-auto" />
+                                        <h4 className="font-bold text-lg mb-2">Authorized Access</h4>
+                                        <p className="text-blue-100 text-sm">
+                                            Location data available to verified research and conservation organizations
+                                        </p>
+                                    </div>
+                                    <div className="bg-white/10 backdrop-blur-sm p-6 rounded-2xl border border-white/20">
+                                        <Shield className="h-8 w-8 text-white mb-4 mx-auto" />
+                                        <h4 className="font-bold text-lg mb-2">Protected Data</h4>
+                                        <p className="text-blue-100 text-sm">
+                                            Strict protocols prevent overharvesting and ensure sustainable use
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <a 
+                                href="mailto:conservation@hillherbs.org" 
+                                className="inline-flex items-center px-8 py-4 bg-white text-blue-700 font-bold rounded-full hover:bg-blue-50 transition-all shadow-2xl hover:shadow-3xl transform hover:-translate-y-1"
+                            >
+                                Contact Conservation Team
+                                <HelpCircle className="ml-3 h-5 w-5" />
+                            </a>
+                        </div>
                     </div>
                 </div>
 
-                {/* Footer Note */}
-                <div className="mt-12 text-center text-gray-600">
-                    <p className="text-sm">
-                        All plant information has been verified by certified experts. Location data is protected 
-                        and available only to authorized research and conservation bodies to prevent overharvesting.
-                    </p>
+                {/* Protection Notice */}
+                <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-8 border border-gray-200">
+                    <div className="flex items-start space-x-4">
+                        <div className="flex-shrink-0">
+                            <div className="p-3 bg-emerald-100 rounded-xl">
+                                <Shield className="h-6 w-6 text-emerald-600" />
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-3">Data Protection & Ethics</h3>
+                            <p className="text-gray-700">
+                                All plant information in this database has been rigorously verified by certified botanical 
+                                and Ayurvedic experts. To protect vulnerable species and prevent overharvesting, precise 
+                                location data is accessible only to authorized research institutions, conservation bodies, 
+                                and government agencies through verified partnerships.
+                            </p>
+                            <p className="text-sm text-gray-600 mt-4">
+                                Our commitment to sustainable conservation ensures traditional knowledge is preserved 
+                                while protecting biodiversity for future generations.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

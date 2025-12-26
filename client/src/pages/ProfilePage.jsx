@@ -2,35 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import api from '../services/api';
-import Spinner from '../components/shared/Spinner';
-import { User, Mail, Phone, Award, Briefcase, Clock, BookText, Leaf } from 'lucide-react';
+import { 
+  User, Mail, Phone, Award, Briefcase, Clock, 
+  BookText, Leaf, Shield, Edit, Save, X, 
+  CheckCircle, Home, Star, Users, Globe, FileText 
+} from 'lucide-react';
 
-// A helper component for displaying each detail item to avoid repetition
-const ProfileDetail = ({ icon, label, value, fullWidth = false }) => {
-    if (!value) return null; // Don't render if there's no value
-
-    return (
-        <div className={fullWidth ? 'sm:col-span-2' : ''}>
-            <dl>
-                <dt className="text-sm font-medium text-gray-500 flex items-center">{icon} {label}</dt>
-                <dd className="mt-1 text-sm text-gray-900 ml-7 whitespace-pre-wrap">{value}</dd>
-            </dl>
-        </div>
-    );
-};
-
-// Main Profile Page Component
 function ProfilePage() {
     const { user, setUser, loading: authLoading } = useAuth();
     const navigate = useNavigate();
     
-    // State for UI control
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({});
     const [editLoading, setEditLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    // Pre-fill the form with the user's current data when the component loads
+
     useEffect(() => {
         if (user) {
             setFormData({
@@ -56,11 +43,11 @@ function ProfilePage() {
         setSuccess('');
         try {
             const response = await api.put('/auth/profile', formData);
-            setUser(response.data); // Update the global user state with fresh data
+            setUser(response.data);
             localStorage.setItem('user', JSON.stringify(response.data));
             setSuccess('Profile updated successfully!');
             setTimeout(() => {
-                setIsEditing(false); // Switch back to view mode after a short delay
+                setIsEditing(false);
                 setSuccess('');
             }, 1500);
         } catch (err) {
@@ -70,132 +57,384 @@ function ProfilePage() {
         }
     };
 
-    if (authLoading) return <div className="flex justify-center items-center h-screen"><Spinner /></div>;
+    if (authLoading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl mb-6 shadow-lg animate-pulse">
+                        <User className="h-8 w-8 text-white" />
+                    </div>
+                    <p className="text-lg font-medium text-gray-700">Loading Profile...</p>
+                </div>
+            </div>
+        );
+    }
+
     if (!user) return <div className="text-center py-20">Error: Could not load user profile.</div>;
     
     const isExpert = user.role === 'expert';
 
     return (
-        <div className="bg-gray-50 min-h-screen-minus-navbar">
-            <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-                {/* --- Header --- */}
-                <div className="text-center mb-10">
-                    <div className="mx-auto h-24 w-24 bg-green-100 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
-                        {isExpert ? <Award className="h-12 w-12 text-green-600" /> : <Leaf className="h-12 w-12 text-green-600" />}
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
+            <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
+            
+            <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+                {/* Header Section */}
+                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 mb-12">
+                    <div className="flex-1">
+                        <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-full text-sm font-semibold mb-4 shadow-lg">
+                            <Shield className="h-4 w-4 mr-2" />
+                            My Profile
+                        </div>
+                        <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                            {user.fullName}
+                        </h1>
+                        <div className="flex items-center space-x-4">
+                            <span className="inline-flex items-center px-3 py-1 bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-800 rounded-full text-sm font-semibold">
+                                {isExpert ? (
+                                    <>
+                                        <Award className="h-3 w-3 mr-1.5" />
+                                        Expert Contributor
+                                    </>
+                                ) : (
+                                    <>
+                                        <Users className="h-3 w-3 mr-1.5" />
+                                        Community Member
+                                    </>
+                                )}
+                            </span>
+                            {user.expertiseArea && (
+                                <span className="inline-flex items-center px-3 py-1 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 rounded-full text-sm font-semibold">
+                                    <Star className="h-3 w-3 mr-1.5" />
+                                    {user.expertiseArea}
+                                </span>
+                            )}
+                        </div>
                     </div>
-                    <h1 className="mt-4 text-3xl font-extrabold text-gray-900">
-                        {user.fullName}
-                    </h1>
-                    <p className="mt-1 text-lg text-green-600 font-semibold capitalize">
-                        {isExpert ? 'Expert Contributor' : 'Community Member'}
-                    </p>
-                    <button
-                        type="button"
-                        onClick={() => navigate(isExpert ? '/expert-dashboard' : '/dashboard')}
-                        className="mt-6 inline-flex items-center px-4 py-2 border border-green-600 text-green-700 font-semibold rounded-md hover:bg-green-50 transition-colors"
-                    >
-                        Back to Dashboard
-                    </button>
-                </div>
-
-                {/* --- Details/Edit Card --- */}
-                <form onSubmit={handleSubmit}>
-                    <div className="bg-white shadow-xl rounded-lg overflow-hidden">
-                        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 flex justify-between items-center">
-                            <div>
-                                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                                    Account Information
-                                </h3>
-                                <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                                    {isEditing ? 'Update your details below.' : 'Your personal and professional details.'}
-                                </p>
-                            </div>
-                            {isExpert && !isEditing && (
-                                <button type="button" onClick={() => setIsEditing(true)} className="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
-                                    Edit Profile
-                                </button>
-                            )}
-                        </div>
-                        
-                        <div className="px-4 py-5 sm:p-6">
-                            {!isEditing ? (
-                                // --- VIEW MODE ---
-                                <dl className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
-                                    <ProfileDetail icon={<User className="text-green-500"/>} label="Username" value={user.username} />
-                                    <ProfileDetail icon={<Award className="text-green-500"/>} label="Role" value={isExpert ? 'Expert Contributor' : 'Community Member'} />
-                                    {isExpert ? (
-                                        <>
-                                            <ProfileDetail icon={<Mail className="text-green-500"/>} label="Email Address" value={user.email} />
-                                            <ProfileDetail icon={<Phone className="text-green-500"/>} label="Phone Number" value={user.phoneNumber} />
-                                            <ProfileDetail icon={<Award className="text-green-500"/>} label="Area of Expertise" value={user.expertiseArea} />
-                                            <ProfileDetail icon={<Briefcase className="text-green-500"/>} label="Workplace" value={user.workplace} />
-                                            <ProfileDetail icon={<Clock className="text-green-500"/>} label="Years of Experience" value={user.yearsOfExperience ? `${user.yearsOfExperience} years` : null} />
-                                            <ProfileDetail icon={<BookText className="text-green-500"/>} label="Bio" value={user.bio} fullWidth={true} />
-                                        </>
-                                    ) : (
-                                        <div className="sm:col-span-2 bg-green-50 p-4 rounded-lg border border-green-200">
-                                            <p className="text-center text-green-800">
-                                                Thank you for contributing to the preservation of medicinal plant knowledge!
-                                            </p>
-                                        </div>
-                                    )}
-                                </dl>
-                            ) : (
-                                // --- EDIT MODE (THE FORM) ---
-                                <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                                    <div className="sm:col-span-6">
-                                        <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">Full Name</label>
-                                        <input type="text" name="fullName" id="fullName" value={formData.fullName} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500" required />
-                                    </div>
-                                    <div className="sm:col-span-3">
-                                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-                                        <input type="email" name="email" id="email" value={formData.email} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500" required />
-                                    </div>
-                                    <div className="sm:col-span-3">
-                                        <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">Phone Number</label>
-                                        <input type="tel" name="phoneNumber" id="phoneNumber" value={formData.phoneNumber} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500" />
-                                    </div>
-                                     <div className="sm:col-span-3">
-                                        <label htmlFor="expertiseArea" className="block text-sm font-medium text-gray-700">Area of Expertise</label>
-                                        <input type="text" name="expertiseArea" id="expertiseArea" value={formData.expertiseArea} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500" required />
-                                    </div>
-                                     <div className="sm:col-span-3">
-                                        <label htmlFor="workplace" className="block text-sm font-medium text-gray-700">Workplace</label>
-                                        <input type="text" name="workplace" id="workplace" value={formData.workplace} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500" required />
-                                    </div>
-                                     <div className="sm:col-span-2">
-                                        <label htmlFor="yearsOfExperience" className="block text-sm font-medium text-gray-700">Years of Experience</label>
-                                        <input type="number" name="yearsOfExperience" id="yearsOfExperience" value={formData.yearsOfExperience} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500" />
-                                    </div>
-                                    <div className="sm:col-span-6">
-                                        <label htmlFor="bio" className="block text-sm font-medium text-gray-700">Bio</label>
-                                        <textarea name="bio" id="bio" value={formData.bio} onChange={handleChange} rows="3" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"></textarea>
-                                    </div>
-                                </div>
-                            )}
-                            {isEditing && (
-                                <div className="mt-6 text-center">
-                                    {error && <p className="text-red-500 text-sm">{error}</p>}
-                                    {success && <p className="text-green-500 text-sm">{success}</p>}
-                                </div>
-                            )}
-                        </div>
-                        
-                        {isEditing && (
-                            <div className="px-4 py-3 bg-gray-50 text-right sm:px-6">
-                                <div className="flex justify-end space-x-3">
-                                    <button type="button" onClick={() => setIsEditing(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300" disabled={editLoading}>
-                                        Cancel
-                                    </button>
-                                    <button type="submit" disabled={editLoading} className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400">
-                                        {editLoading && <Spinner />}
-                                        {editLoading ? 'Saving...' : 'Save Changes'}
-                                    </button>
-                                </div>
-                            </div>
+                    
+                    <div className="flex space-x-4">
+                        <button
+                            type="button"
+                            onClick={() => navigate(isExpert ? '/expert-dashboard' : '/dashboard')}
+                            className="inline-flex items-center px-5 py-2.5 bg-white border border-emerald-300 text-emerald-700 font-medium rounded-xl hover:bg-emerald-50 transition-all shadow-md hover:shadow-lg"
+                        >
+                            <Home className="h-4 w-4 mr-2" />
+                            Back to Dashboard
+                        </button>
+                        {isExpert && !isEditing && (
+                            <button 
+                                type="button" 
+                                onClick={() => setIsEditing(true)}
+                                className="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-medium rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                            >
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit Profile
+                            </button>
                         )}
                     </div>
-                </form>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Left Column - Profile Summary */}
+                    <div className="lg:col-span-1">
+                        <div className="bg-white rounded-2xl shadow-xl border border-emerald-100 p-6 mb-6">
+                            <div className="flex flex-col items-center text-center">
+                                <div className="w-32 h-32 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg mb-6">
+                                    {isExpert ? (
+                                        <Award className="h-16 w-16 text-white" />
+                                    ) : (
+                                        <User className="h-16 w-16 text-white" />
+                                    )}
+                                </div>
+                                
+                                <h3 className="text-xl font-bold text-gray-900 mb-2">{user.fullName}</h3>
+                                <p className="text-gray-600 mb-1">@{user.username}</p>
+                                
+                                <div className="mt-4 space-y-3 w-full">
+                                    <div className="flex items-center text-gray-600">
+                                        <Mail className="h-4 w-4 mr-3 text-gray-400" />
+                                        <span className="text-sm truncate">{user.email || 'No email provided'}</span>
+                                    </div>
+                                    
+                                    {user.phoneNumber && (
+                                        <div className="flex items-center text-gray-600">
+                                            <Phone className="h-4 w-4 mr-3 text-gray-400" />
+                                            <span className="text-sm">{user.phoneNumber}</span>
+                                        </div>
+                                    )}
+                                    
+                                    {user.yearsOfExperience && (
+                                        <div className="flex items-center text-gray-600">
+                                            <Clock className="h-4 w-4 mr-3 text-gray-400" />
+                                            <span className="text-sm">{user.yearsOfExperience} years experience</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Stats Card */}
+                        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-200">
+                            <h4 className="font-bold text-gray-900 mb-4 flex items-center">
+                                <CheckCircle className="h-5 w-5 mr-2 text-emerald-600" />
+                                Profile Status
+                            </h4>
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-600">Verification</span>
+                                    <span className="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-semibold rounded-full">
+                                        {isExpert ? 'Expert Verified' : 'Member'}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-600">Account Type</span>
+                                    <span className="text-sm font-medium text-gray-900">
+                                        {user.role?.charAt(0).toUpperCase() + user.role?.slice(1)}
+                                    </span>
+                                </div>
+                                <div className="pt-4 border-t border-emerald-200">
+                                    <p className="text-xs text-gray-500">
+                                        Member since {new Date(user.createdAt).toLocaleDateString()}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column - Details/Edit Form */}
+                    <div className="lg:col-span-2">
+                        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-emerald-100">
+                            {/* Card Header */}
+                            <div className={`px-6 py-4 ${isEditing ? 'bg-gradient-to-r from-amber-50 to-yellow-50' : 'bg-gradient-to-r from-emerald-50 to-teal-50'} border-b border-emerald-200`}>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center">
+                                        <div className="p-2 bg-white rounded-xl mr-4 shadow-sm">
+                                            {isEditing ? (
+                                                <Edit className="h-5 w-5 text-amber-600" />
+                                            ) : (
+                                                <FileText className="h-5 w-5 text-emerald-600" />
+                                            )}
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-gray-900">
+                                                {isEditing ? 'Edit Profile Information' : 'Professional Details'}
+                                            </h3>
+                                            <p className="text-sm text-gray-600">
+                                                {isEditing ? 'Update your professional information below' : 'Your verified expertise and background'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="p-6">
+                                {!isEditing ? (
+                                    // View Mode
+                                    <div className="space-y-8">
+                                        {isExpert ? (
+                                            <>
+                                                {/* Expertise Section */}
+                                                <div>
+                                                    <div className="flex items-center text-emerald-700 mb-4">
+                                                        <Award className="h-5 w-5 mr-2" />
+                                                        <h4 className="font-bold text-sm uppercase tracking-wide">Expertise & Background</h4>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                        <div className="bg-gradient-to-br from-emerald-50 to-white p-4 rounded-xl border border-emerald-100">
+                                                            <p className="text-sm text-gray-500 mb-1">Area of Expertise</p>
+                                                            <p className="font-medium text-gray-900">{user.expertiseArea || 'Not specified'}</p>
+                                                        </div>
+                                                        <div className="bg-gradient-to-br from-blue-50 to-white p-4 rounded-xl border border-blue-100">
+                                                            <p className="text-sm text-gray-500 mb-1">Workplace / Organization</p>
+                                                            <p className="font-medium text-gray-900">{user.workplace || 'Not specified'}</p>
+                                                        </div>
+                                                        <div className="bg-gradient-to-br from-amber-50 to-white p-4 rounded-xl border border-amber-100">
+                                                            <p className="text-sm text-gray-500 mb-1">Years of Experience</p>
+                                                            <p className="font-medium text-gray-900">{user.yearsOfExperience ? `${user.yearsOfExperience} years` : 'Not specified'}</p>
+                                                        </div>
+                                                        <div className="bg-gradient-to-br from-purple-50 to-white p-4 rounded-xl border border-purple-100">
+                                                            <p className="text-sm text-gray-500 mb-1">Verification Status</p>
+                                                            <p className="font-medium text-emerald-700">Certified Expert</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Bio Section */}
+                                                {user.bio && (
+                                                    <div>
+                                                        <div className="flex items-center text-blue-700 mb-4">
+                                                            <BookText className="h-5 w-5 mr-2" />
+                                                            <h4 className="font-bold text-sm uppercase tracking-wide">Professional Bio</h4>
+                                                        </div>
+                                                        <div className="bg-gradient-to-br from-blue-50 to-white p-5 rounded-xl border border-blue-100">
+                                                            <p className="text-gray-800 leading-relaxed">{user.bio}</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-6 rounded-2xl border border-emerald-200 text-center">
+                                                <Leaf className="h-12 w-12 text-emerald-500 mx-auto mb-4" />
+                                                <h4 className="text-xl font-bold text-emerald-800 mb-3">Community Contributor</h4>
+                                                <p className="text-gray-700">
+                                                    Thank you for contributing to the preservation of medicinal plant knowledge! 
+                                                    Your submissions help build our verified database and support biodiversity conservation.
+                                                </p>
+                                                <button
+                                                    onClick={() => navigate('/register?expert=true')}
+                                                    className="mt-6 inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-600 hover:to-teal-600 transition-all shadow-md hover:shadow-lg"
+                                                >
+                                                    <Globe className="h-4 w-4 mr-2" />
+                                                    Become an Expert
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    // Edit Mode
+                                    <form onSubmit={handleSubmit} className="space-y-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    <User className="inline h-4 w-4 mr-2 text-emerald-600" />
+                                                    Full Name
+                                                </label>
+                                                <input 
+                                                    type="text" 
+                                                    name="fullName" 
+                                                    value={formData.fullName} 
+                                                    onChange={handleChange} 
+                                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
+                                                    required 
+                                                />
+                                            </div>
+                                            
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    <Mail className="inline h-4 w-4 mr-2 text-emerald-600" />
+                                                    Email Address
+                                                </label>
+                                                <input 
+                                                    type="email" 
+                                                    name="email" 
+                                                    value={formData.email} 
+                                                    onChange={handleChange} 
+                                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
+                                                    required 
+                                                />
+                                            </div>
+                                            
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    <Phone className="inline h-4 w-4 mr-2 text-emerald-600" />
+                                                    Phone Number
+                                                </label>
+                                                <input 
+                                                    type="tel" 
+                                                    name="phoneNumber" 
+                                                    value={formData.phoneNumber} 
+                                                    onChange={handleChange} 
+                                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
+                                                />
+                                            </div>
+                                            
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    <Award className="inline h-4 w-4 mr-2 text-emerald-600" />
+                                                    Area of Expertise
+                                                </label>
+                                                <input 
+                                                    type="text" 
+                                                    name="expertiseArea" 
+                                                    value={formData.expertiseArea} 
+                                                    onChange={handleChange} 
+                                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
+                                                    required 
+                                                />
+                                            </div>
+                                            
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    <Briefcase className="inline h-4 w-4 mr-2 text-emerald-600" />
+                                                    Workplace / Organization
+                                                </label>
+                                                <input 
+                                                    type="text" 
+                                                    name="workplace" 
+                                                    value={formData.workplace} 
+                                                    onChange={handleChange} 
+                                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
+                                                    required 
+                                                />
+                                            </div>
+                                            
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    <Clock className="inline h-4 w-4 mr-2 text-emerald-600" />
+                                                    Years of Experience
+                                                </label>
+                                                <input 
+                                                    type="number" 
+                                                    name="yearsOfExperience" 
+                                                    value={formData.yearsOfExperience} 
+                                                    onChange={handleChange} 
+                                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
+                                                />
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                <BookText className="inline h-4 w-4 mr-2 text-emerald-600" />
+                                                Professional Bio
+                                            </label>
+                                            <textarea 
+                                                name="bio" 
+                                                value={formData.bio} 
+                                                onChange={handleChange} 
+                                                rows="4" 
+                                                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all resize-none"
+                                            />
+                                        </div>
+
+                                        {/* Messages */}
+                                        {error && (
+                                            <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+                                                <p className="text-red-600 text-sm font-medium">{error}</p>
+                                            </div>
+                                        )}
+                                        
+                                        {success && (
+                                            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                                <p className="text-emerald-600 text-sm font-medium">{success}</p>
+                                            </div>
+                                        )}
+
+                                        {/* Action Buttons */}
+                                        <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                                            <button 
+                                                type="button" 
+                                                onClick={() => setIsEditing(false)}
+                                                className="px-6 py-3 bg-gray-100 text-gray-800 font-medium rounded-xl hover:bg-gray-200 transition-colors flex items-center"
+                                            >
+                                                <X className="h-5 w-5 mr-2" />
+                                                Cancel
+                                            </button>
+                                            <button 
+                                                type="submit" 
+                                                disabled={editLoading}
+                                                className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-medium rounded-xl shadow-lg hover:shadow-xl hover:from-emerald-600 hover:to-teal-600 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:transform-none flex items-center"
+                                            >
+                                                <Save className="h-5 w-5 mr-2" />
+                                                {editLoading ? 'Saving...' : 'Save Changes'}
+                                            </button>
+                                        </div>
+                                    </form>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
