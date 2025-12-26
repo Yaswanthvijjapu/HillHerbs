@@ -72,6 +72,7 @@ const connectDB = require('./config/db.config');
 // Import routes
 const authRoutes = require('./routes/auth.routes');
 const plantRoutes = require('./routes/plant.routes');
+const adminRoutes = require('./routes/admin.routes');
 
 // Initialize app
 const app = express();
@@ -89,6 +90,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/plants', plantRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Start server
 app.listen(PORT, () => {

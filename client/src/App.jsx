@@ -10,6 +10,8 @@ import ExpertDashboard from './pages/ExpertDashboard';
 import KnowledgeHubPage from './pages/KnowledgeHubPage';
 import ProfilePage from './pages/ProfilePage'; 
 import HeroPage from './pages/HeroPage'; 
+import AdminDashboard from './pages/AdminDashboard';
+import PendingApprovalPage from './pages/PendingApprovalPage';
 
 // Layout component to wrap pages with the Navbar
 const AppLayout = () => (
@@ -42,6 +44,12 @@ function App() {
                             <Route path="/profile" element={<ProfilePage />} />
                         </Route>
                     </Route>
+
+                     <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                        <Route path="/admin-dashboard" element={<AdminDashboard />} />
+                    </Route>
+
+                    <Route path="/pending-approval" element={<PendingApprovalPage />} />
 
 
 

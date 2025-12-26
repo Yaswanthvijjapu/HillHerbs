@@ -19,7 +19,6 @@ function RegisterPage() {
         workplace: '',
         yearsOfExperience: '',
         bio: '',
-        expertCode: '',
     });
     const [idProof, setIdProof] = useState(null);
     const [preview, setPreview] = useState(null);
@@ -86,6 +85,9 @@ function RegisterPage() {
             // Navigate to the correct dashboard based on role
             if (user.role === 'expert') {
                 navigate('/expert-dashboard');
+            } else if (user.role === 'expert_pending') {
+                // Redirect new experts to the waiting page
+                navigate('/pending-approval');
             } else {
                 navigate('/dashboard');
             }
@@ -161,10 +163,6 @@ function RegisterPage() {
                                             <p className="text-xs text-gray-500">{idProof ? idProof.name : "PNG, JPG, PDF up to 5MB"}</p>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="md:col-span-2">
-                                    <label htmlFor="expertCode">Expert Registration Code</label>
-                                    <input id="expertCode" name="expertCode" type="password" value={formData.expertCode} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
                                 </div>
                             </>
                         )}

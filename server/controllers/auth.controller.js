@@ -12,7 +12,7 @@ exports.register = async (req, res) => {
     const tempFilePath = req.file ? req.file.path : null;
 
     try {
-        const { username, password, fullName, email, phoneNumber, expertiseArea, workplace, yearsOfExperience, bio, expertCode } = req.body;
+        const { username, password, fullName, email, phoneNumber, expertiseArea, workplace, yearsOfExperience, bio } = req.body;
 
         // --- Helper function to generate token and send response ---
         const loginUserAndRespond = (user, message) => {
@@ -34,10 +34,8 @@ exports.register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 12);
 
         // --- Expert Registration Logic ---
-        if (isExpertRegistration(expertCode, req.file)) { // Use a helper to check if it's an expert
-            if (expertCode !== process.env.EXPERT_SIGNUP_CODE) {
-                return res.status(400).json({ message: 'Invalid expert registration code.' });
-            }
+        if (req.file) { // Use a helper to check if it's an expert
+           
             if (!req.file || !email || !workplace || !expertiseArea) {
                  return res.status(400).json({ message: 'Proof of ID, email, workplace, and expertise are required.' });
             }
@@ -47,25 +45,45 @@ exports.register = async (req, res) => {
                 return res.status(400).json({ message: 'An account with this email already exists.' });
             }
 
-            const uploadResponse = await cloudinary.uploader.upload(tempFilePath, { folder: "hillherbs_id_proofs" });
+            //const uploadResponse = await cloudinary.uploader.upload(tempFilePath, { folder: "hillherbs_id_proofs" });
+
+            const uploadResponse = await cloudinary.uploader.upload(tempFilePath, { 
+                folder: "hillherbs_id_proofs",
+                resource_type: "auto" // <--- ADD THIS LINE
+            });
             
             const newExpert = new User({
                 username, password: hashedPassword, fullName, email, phoneNumber,
                 expertiseArea, workplace, yearsOfExperience, bio,
                 idProofURL: uploadResponse.secure_url,
                 idProofPublicId: uploadResponse.public_id,
-                role: 'expert'
+                role: 'expert_pending' // Set initial role to expert_pending
             });
 
-            await newExpert.save();
-            return loginUserAndRespond(newExpert, 'Expert registration successful!');
+             await newExpert.save();
+            
+            // Generate token (they can log in, but will be restricted)
+            const token = jwt.sign({ id: newExpert._id, role: newExpert.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
+            
+            return res.status(201).json({ 
+                message: 'Registration successful! Your account is pending Admin approval.',
+                token, 
+                user: { id: newExpert._id, username: newExpert.username, role: 'expert_pending', fullName: newExpert.fullName }
+            });
         }
         
         // --- Hilly User Registration Logic ---
         else {
             const newUser = new User({ username, password: hashedPassword, fullName, role: 'hilly_user' });
             await newUser.save();
-            return loginUserAndRespond(newUser, 'User registered successfully!');
+            
+            // ... existing loginUserAndRespond logic or inline generation
+            const token = jwt.sign({ id: newUser._id, role: newUser.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
+            return res.status(201).json({ 
+                message: 'User registered successfully!',
+                token, 
+                user: { id: newUser._id, username: newUser.username, role: 'hilly_user', fullName: newUser.fullName }
+            });
         }
 
     } catch (error) {

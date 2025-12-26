@@ -19,14 +19,19 @@ function LoginPage() {
             // --- THE FIX ---
             // The 'login' function returns the user object directly.
             // So, we assign it directly to a variable.
+            // ... inside handleSubmit
             const loggedInUser = await login(username, password);
-            
-            // Now, we check the role on this new variable.
-            if (loggedInUser.role === 'expert') {
+
+            if (loggedInUser.role === 'admin') {
+                navigate('/admin-dashboard');
+            } else if (loggedInUser.role === 'expert') {
                 navigate('/expert-dashboard');
+            } else if (loggedInUser.role === 'expert_pending') {
+                navigate('/pending-approval');
             } else {
                 navigate('/dashboard');
             }
+
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed.');
         } finally {

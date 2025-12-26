@@ -2,16 +2,23 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
-const ProtectedRoute = () => {
-    const { isAuthenticated } = useAuth();
+const ProtectedRoute = ({ allowedRoles }) => {
+    const { user, isAuthenticated } = useAuth();
 
     if (!isAuthenticated) {
-        // Redirect them to the /login page, but save the current location they were
-        // trying to go to. This allows us to send them along to that page after they login.
         return <Navigate to="/login" replace />;
     }
 
-    return <Outlet />; // Render the child route (e.g., the dashboard)
+    // If roles are specified, check if user has one of them
+    if (allowedRoles && !allowedRoles.includes(user.role)) {
+        // Redirect logic based on what they ARE to avoid loops
+        if (user.role === 'expert_pending') return <Navigate to="/pending-approval" replace />;
+        if (user.role === 'hilly_user') return <Navigate to="/dashboard" replace />;
+        // Default fallback
+        return <Navigate to="/" replace />;
+    }
+
+    return <Outlet />;
 };
 
 export default ProtectedRoute;

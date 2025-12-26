@@ -19,8 +19,16 @@ const isExpert = (req, res, next) => {
     if (req.user && req.user.role === 'expert') {
         next(); // User is an expert, proceed
     } else {
-        res.status(403).json({ message: 'Forbidden: Access is restricted to experts only.' });
+        res.status(403).json({ message: 'Forbidden: Access is restricted to verified experts only.' });
     }
 };
 
-module.exports = { authMiddleware, isExpert };
+const isAdmin = (req, res, next) => {
+    if (req.user && req.user.role === 'admin') {
+        next();
+    } else {
+        res.status(403).json({ message: 'Forbidden: Access is restricted to administrators.' });
+    }
+};
+
+module.exports = { authMiddleware, isExpert, isAdmin };
