@@ -101,7 +101,7 @@ function RegisterPage() {
                                     <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
                                         <Shield className="h-8 w-8" />
                                     </div>
-                                    <h1 className="text-3xl font-bold">PlantSage</h1>
+                                    <h1 className="text-3xl font-bold">HillHerbs</h1>
                                 </div>
                                 <p className="text-emerald-100 text-lg">
                                     Join our community of plant enthusiasts and experts
