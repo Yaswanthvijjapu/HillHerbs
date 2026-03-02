@@ -73,6 +73,7 @@ const connectDB = require('./config/db.config');
 const authRoutes = require('./routes/auth.routes');
 const plantRoutes = require('./routes/plant.routes');
 const adminRoutes = require('./routes/admin.routes');
+const chatRoutes = require('./routes/chat.routes'); 
 
 // Initialize app
 const app = express();
@@ -91,7 +92,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/plants', plantRoutes);
 app.use('/api/admin', adminRoutes);
-
+app.use('/api/chat', chatRoutes); // Chatbot route
 // Start server
 app.listen(PORT, () => {
     console.log(`✅ Server is running at http://localhost:${PORT}`);

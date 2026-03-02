@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 import plantService from '../services/plantService';
 import PlantCard from '../components/knowledge-hub/PlantCard';
 import PlantMapModal from '../components/knowledge-hub/PlantMapModal'; // Import the Map Modal
+import ChatBot from '../components/shared/ChatBot'; // <--- IMPORT THIS
+
+
 import { 
   HelpCircle, Leaf, Search, Filter, Shield, 
   Database, TrendingUp, Globe, Award, Hash, Eye 
@@ -339,6 +342,8 @@ function KnowledgeHubPage() {
                     plant={selectedPlantForMap} 
                 />
             )}
+            {/* --- ADD CHATBOT HERE --- */}
+            <ChatBot /> 
         </div>
     );
 }
