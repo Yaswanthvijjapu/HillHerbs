@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:5000/api', // Your backend URL
+    baseURL: 'https://hill-herbs-backend.vercel.app/api', // Your backend URL
 });
 
 // Interceptor to add the JWT token to every request if it exists

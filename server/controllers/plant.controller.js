@@ -4,6 +4,7 @@ const { isMedicinal } = require('../utils/medicinalPlants');
 const { cloudinary } = require('../config/cloudinary.config');
 
 // --- Helper: Upload Buffer to Cloudinary ---
+// We need this because the file is in RAM (buffer), not on disk
 const uploadToCloudinary = (buffer, folder) => {
     return new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
@@ -24,17 +25,18 @@ exports.submitPlant = async (req, res) => {
     try {
         const { latitude, longitude } = req.body;
         
-        // Check for req.file instead of req.file.path
+        // CHANGE: We check req.file, but NOT req.file.path
         if (!req.file || !latitude || !longitude) {
             return res.status(400).json({ message: "Image and location are both required." });
         }
 
-        // 1. Get AI identification from the BUFFER
+        // 1. Get AI identification from the BUFFER (RAM)
+        // Make sure your gemini.service.js is also updated to accept buffers!
         const aiName = await getAiPlantName(req.file.buffer, req.file.mimetype);
 
         // 2. Check if the plant is on our medicinal list
         if (aiName && isMedicinal(aiName)) {
-            // 3. Upload buffer to Cloudinary
+            // 3. Upload buffer to Cloudinary using the helper
             const uploadResponse = await uploadToCloudinary(req.file.buffer, "hillherbs_submissions");
 
             // 4. Save submission to the database
@@ -46,6 +48,7 @@ exports.submitPlant = async (req, res) => {
                 aiSuggestedName: aiName,
             });
             await newSubmission.save();
+            
             const successMessage = `Successfully submitted! The AI has identified the plant as '${aiName}'. It is now pending verification by one of our experts.`;
 
             res.status(201).json({ 
@@ -64,16 +67,18 @@ exports.submitPlant = async (req, res) => {
         }
     } catch (error) {
         console.error("Submission Error:", error);
+        // This log will appear in Vercel logs to help debug if it fails again
         res.status(500).json({ message: "An error occurred during submission." });
     }
+    // REMOVED: fs.unlinkSync - No file to delete because we used memory storage!
 };
 
 // --- Get all pending submissions ---
 exports.getPendingSubmissions = async (req, res) => {
     try {
         const submissions = await PlantSubmission.find({ status: 'pending_expert_verification' })
-            .populate('submittedBy', 'username fullName') // Get submitter's name
-            .sort({ createdAt: -1 }); // Show newest first
+            .populate('submittedBy', 'username fullName') 
+            .sort({ createdAt: -1 }); 
         res.status(200).json(submissions);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching pending submissions.', error: error.message });

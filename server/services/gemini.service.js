@@ -15,7 +15,7 @@ function fileToGenerativePart(buffer, mimeType) {
 
 // CHANGE: First arg is now 'imageBuffer'
 async function getAiPlantName(imageBuffer, mimeType) {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
      const prompt = `
       Analyze the plant in this image and provide a structured response.
       1. Identify the single, most prominent plant.
