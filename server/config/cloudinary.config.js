@@ -10,6 +10,11 @@ cloudinary.config({
 });
 
 // Configure Multer for temporary local storage
-const upload = multer({ dest: 'uploads/' });
+// const upload = multer({ dest: 'uploads/' });
+
+// module.exports = { cloudinary, upload };
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 module.exports = { cloudinary, upload };

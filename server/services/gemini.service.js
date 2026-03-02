@@ -1,20 +1,21 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const fs = require("fs");
 require('dotenv').config();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY); 
 
-function fileToGenerativePart(path, mimeType) {
+// CHANGE: Accept buffer, convert to base64
+function fileToGenerativePart(buffer, mimeType) {
     return {
         inlineData: {
-            data: Buffer.from(fs.readFileSync(path)).toString("base64"),
+            data: buffer.toString("base64"),
             mimeType,
         },
     };
 }
 
-async function getAiPlantName(imagePath, mimeType) {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+// CHANGE: First arg is now 'imageBuffer'
+async function getAiPlantName(imageBuffer, mimeType) {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
      const prompt = `
       Analyze the plant in this image and provide a structured response.
       1. Identify the single, most prominent plant.
@@ -28,7 +29,8 @@ async function getAiPlantName(imagePath, mimeType) {
       If you are unsure or cannot identify a plant, use {"label": "Unknown", "isMedicinal": false}.
     `;
     
-    const imageParts = [fileToGenerativePart(imagePath, mimeType)];
+    // Pass buffer
+    const imageParts = [fileToGenerativePart(imageBuffer, mimeType)];
 
     const result = await model.generateContent([prompt, ...imageParts]);
     const responseText = result.response.text();

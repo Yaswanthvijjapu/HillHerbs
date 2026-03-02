@@ -1,27 +1,41 @@
-const fs = require('fs');
 const PlantSubmission = require('../models/plantSubmission.model');
 const { getAiPlantName } = require('../services/gemini.service');
 const { isMedicinal } = require('../utils/medicinalPlants');
 const { cloudinary } = require('../config/cloudinary.config');
 
-exports.submitPlant = async (req, res) => {
-    const tempImagePath = req.file ? req.file.path : null;
+// --- Helper: Upload Buffer to Cloudinary ---
+const uploadToCloudinary = (buffer, folder) => {
+    return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+            { 
+                folder: folder, 
+                resource_type: "auto" 
+            },
+            (error, result) => {
+                if (error) return reject(error);
+                resolve(result);
+            }
+        );
+        uploadStream.end(buffer);
+    });
+};
 
+exports.submitPlant = async (req, res) => {
     try {
         const { latitude, longitude } = req.body;
-        if (!tempImagePath || !latitude || !longitude) {
+        
+        // Check for req.file instead of req.file.path
+        if (!req.file || !latitude || !longitude) {
             return res.status(400).json({ message: "Image and location are both required." });
         }
 
-        // 1. Get AI identification from the temporarily stored image
-        const aiName = await getAiPlantName(tempImagePath, req.file.mimetype);
+        // 1. Get AI identification from the BUFFER
+        const aiName = await getAiPlantName(req.file.buffer, req.file.mimetype);
 
         // 2. Check if the plant is on our medicinal list
         if (aiName && isMedicinal(aiName)) {
-            // 3. If yes, upload the image to Cloudinary
-            const uploadResponse = await cloudinary.uploader.upload(tempImagePath, {
-                folder: "hillherbs_submissions",
-            });
+            // 3. Upload buffer to Cloudinary
+            const uploadResponse = await uploadToCloudinary(req.file.buffer, "hillherbs_submissions");
 
             // 4. Save submission to the database
             const newSubmission = new PlantSubmission({
@@ -35,9 +49,8 @@ exports.submitPlant = async (req, res) => {
             const successMessage = `Successfully submitted! The AI has identified the plant as '${aiName}'. It is now pending verification by one of our experts.`;
 
             res.status(201).json({ 
-                message: successMessage, // Send the new detailed message
+                message: successMessage, 
                 submission: {
-                    // Send back some key details for the frontend to display
                     aiSuggestedName: newSubmission.aiSuggestedName,
                     imageURL: newSubmission.imageURL,
                     status: newSubmission.status
@@ -52,15 +65,10 @@ exports.submitPlant = async (req, res) => {
     } catch (error) {
         console.error("Submission Error:", error);
         res.status(500).json({ message: "An error occurred during submission." });
-    } finally {
-        // 6. ALWAYS clean up the temporary file from the 'uploads/' folder
-        if (tempImagePath) {
-            fs.unlinkSync(tempImagePath);
-        }
     }
 };
 
-// --- NEW FUNCTION 1: Get all pending submissions ---
+// --- Get all pending submissions ---
 exports.getPendingSubmissions = async (req, res) => {
     try {
         const submissions = await PlantSubmission.find({ status: 'pending_expert_verification' })
@@ -71,8 +79,8 @@ exports.getPendingSubmissions = async (req, res) => {
         res.status(500).json({ message: 'Error fetching pending submissions.', error: error.message });
     }
 };
-// --- NEW FUNCTION 2: Verify a single submission ---
 
+// --- Verify a single submission ---
 exports.verifySubmission = async (req, res) => {
     try {
         const { id } = req.params;
@@ -84,10 +92,9 @@ exports.verifySubmission = async (req, res) => {
             return res.status(404).json({ message: 'Submission not found.' });
         }
 
-        // --- Prepare the update object ---
         const updateData = {
             verifiedBy: expertId,
-            expertNotes: expertNotes || '', // Ensure it's not undefined
+            expertNotes: expertNotes || '',
         };
 
         if (action === 'approve' || action === 'correct') {
@@ -97,7 +104,7 @@ exports.verifySubmission = async (req, res) => {
             updateData.status = 'verified';
             updateData.verificationMethod = verificationMethod;
             updateData.medicinalUses = medicinalUses;
-            updateData.importance = importance || ''; // Ensure it's not undefined
+            updateData.importance = importance || '';
 
             if (action === 'correct') {
                 if (!correctedName) {
@@ -113,7 +120,6 @@ exports.verifySubmission = async (req, res) => {
             }
             updateData.status = 'rejected';
             updateData.rejectionReason = rejectionReason;
-            // Clear fields that don't apply to rejected items
             updateData.finalPlantName = ''; 
             updateData.verificationMethod = '';
             updateData.medicinalUses = '';
@@ -122,7 +128,6 @@ exports.verifySubmission = async (req, res) => {
             return res.status(400).json({ message: 'Invalid action.' });
         }
         
-        // --- Apply the update and save ---
         Object.assign(submission, updateData);
         const updatedSubmission = await submission.save();
 
@@ -130,22 +135,21 @@ exports.verifySubmission = async (req, res) => {
     } catch (error) {
         console.error("--- VERIFICATION SUBMISSION ERROR ---");
         console.error(error);
-        console.error("-------------------------------------");
         res.status(500).json({ message: 'Error verifying submission.', error: error.message });
     }
 };
 
 exports.getExpertHistory = async (req, res) => {
     try {
-        const expertId = req.user.id; // From auth middleware
+        const expertId = req.user.id; 
 
         const history = await PlantSubmission.find({ 
-            verifiedBy: expertId, // Only find submissions verified by this expert
-            status: { $in: ['verified', 'rejected'] } // Only get 'verified' or 'rejected'
+            verifiedBy: expertId, 
+            status: { $in: ['verified', 'rejected'] } 
         })
         .populate('submittedBy', 'username')
-        .sort({ updatedAt: -1 }) // Sort by when it was last updated (i.e., verified)
-        .limit(20); // Limit to the last 20 for performance
+        .sort({ updatedAt: -1 })
+        .limit(20); 
 
         res.status(200).json(history);
     } catch (error) {
@@ -161,12 +165,8 @@ exports.getVerifiedPlants = async (req, res) => {
             
         res.status(200).json(verifiedPlants);
     } catch (error) {
-        // This will log the DETAILED error to your backend console
         console.error("--- ERROR FETCHING VERIFIED PLANTS ---");
         console.error(error);
-        console.error("--------------------------------------");
-        
-        // This sends the generic 500 error back to the frontend
         res.status(500).json({ message: 'Internal Server Error: Could not fetch verified plants.' });
     }
 };
