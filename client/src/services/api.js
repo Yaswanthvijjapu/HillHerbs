@@ -1,7 +1,8 @@
 import axios from 'axios';
 
+// Use the environment variable, or fallback to localhost for development
 const api = axios.create({
-    baseURL: 'https://hill-herbs-backend.vercel.app/api', // Your backend URL
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
 });
 
 // Interceptor to add the JWT token to every request if it exists
@@ -17,6 +18,5 @@ api.interceptors.request.use(
         return Promise.reject(error);
     }
 );
-
 
 export default api;
