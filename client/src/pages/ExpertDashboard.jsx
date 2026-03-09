@@ -8,16 +8,16 @@ import {
   Briefcase, Mail, Phone, Award, User, BookText, 
   Shield, CheckCircle, XCircle, Clock, BarChart3,
   FileSearch, AlertCircle, Info, Search, Filter,
-  Calendar, MapPin, Leaf, Users, Eye
+  Calendar, MapPin, Leaf, Users, Eye, ChevronDown, ChevronUp // Added Chevrons
 } from 'lucide-react';
 
 function ExpertDashboard() {
     const { user } = useAuth();
-    const [pendingSubmissions, setPendingSubmissions] = useState([]);
+    const[pendingSubmissions, setPendingSubmissions] = useState([]);
     const [history, setHistory] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const[loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const[isModalOpen, setIsModalOpen] = useState(false);
     const [selectedSubmission, setSelectedSubmission] = useState(null);
     const [stats, setStats] = useState({
         pending: 0,
@@ -26,10 +26,14 @@ function ExpertDashboard() {
         totalReviewed: 0
     });
 
+    // --- NEW: States for expanding/collapsing history lists ---
+    const [showAllVerified, setShowAllVerified] = useState(false);
+    const [showAllRejected, setShowAllRejected] = useState(false);
+
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const [pendingRes, historyRes] = await Promise.all([
+            const[pendingRes, historyRes] = await Promise.all([
                 plantService.getPending(),
                 plantService.getHistory()
             ]);
@@ -95,9 +99,13 @@ function ExpertDashboard() {
     const verifiedHistory = history.filter(item => item.status === 'verified');
     const rejectedHistory = history.filter(item => item.status === 'rejected');
 
+    // --- NEW: Logic to determine how many items to show ---
+    const displayedVerified = showAllVerified ? verifiedHistory : verifiedHistory.slice(0, 3);
+    const displayedRejected = showAllRejected ? rejectedHistory : rejectedHistory.slice(0, 3);
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
-            <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
+            <div className="absolute inset-0 bg-grid-slate-100[mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
             
             <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
                 {/* Header Section */}
@@ -288,12 +296,18 @@ function ExpertDashboard() {
                             <div className="p-6">
                                 {verifiedHistory.length > 0 ? (
                                     <div className="space-y-6">
-                                        {verifiedHistory.slice(0, 3).map(item => <HistoryCard key={item._id} submission={item} />)}
+                                        {/* --- NEW: Map over displayedVerified instead of slice --- */}
+                                        {displayedVerified.map(item => <HistoryCard key={item._id} submission={item} />)}
+                                        
+                                        {/* --- NEW: Toggle Button --- */}
                                         {verifiedHistory.length > 3 && (
                                             <div className="text-center pt-4 border-t border-gray-100">
-                                                <button className="text-emerald-600 font-medium hover:text-emerald-700 flex items-center justify-center mx-auto">
-                                                    View all {verifiedHistory.length} verified plants
-                                                    <Eye className="h-4 w-4 ml-2" />
+                                                <button 
+                                                    onClick={() => setShowAllVerified(!showAllVerified)}
+                                                    className="text-emerald-600 font-medium hover:text-emerald-700 flex items-center justify-center mx-auto transition-colors"
+                                                >
+                                                    {showAllVerified ? 'Show less' : `View all ${verifiedHistory.length} verified plants`}
+                                                    {showAllVerified ? <ChevronUp className="h-4 w-4 ml-2" /> : <ChevronDown className="h-4 w-4 ml-2" />}
                                                 </button>
                                             </div>
                                         )}
@@ -325,12 +339,18 @@ function ExpertDashboard() {
                             <div className="p-6">
                                 {rejectedHistory.length > 0 ? (
                                     <div className="space-y-6">
-                                        {rejectedHistory.slice(0, 3).map(item => <HistoryCard key={item._id} submission={item} />)}
+                                        {/* --- NEW: Map over displayedRejected instead of slice --- */}
+                                        {displayedRejected.map(item => <HistoryCard key={item._id} submission={item} />)}
+                                        
+                                        {/* --- NEW: Toggle Button --- */}
                                         {rejectedHistory.length > 3 && (
                                             <div className="text-center pt-4 border-t border-gray-100">
-                                                <button className="text-red-600 font-medium hover:text-red-700 flex items-center justify-center mx-auto">
-                                                    View all {rejectedHistory.length} rejected submissions
-                                                    <Eye className="h-4 w-4 ml-2" />
+                                                <button 
+                                                    onClick={() => setShowAllRejected(!showAllRejected)}
+                                                    className="text-red-600 font-medium hover:text-red-700 flex items-center justify-center mx-auto transition-colors"
+                                                >
+                                                    {showAllRejected ? 'Show less' : `View all ${rejectedHistory.length} rejected submissions`}
+                                                    {showAllRejected ? <ChevronUp className="h-4 w-4 ml-2" /> : <ChevronDown className="h-4 w-4 ml-2" />}
                                                 </button>
                                             </div>
                                         )}
@@ -398,12 +418,12 @@ function ExpertDashboard() {
 const VerificationForm = ({ submission, onUpdate, onClose }) => {
     const [action, setAction] = useState('approve');
     const [correctedName, setCorrectedName] = useState('');
-    const [verificationMethod, setVerificationMethod] = useState('');
+    const[verificationMethod, setVerificationMethod] = useState('');
     const [rejectionReason, setRejectionReason] = useState('');
     const [expertNotes, setExpertNotes] = useState('');
-    const [medicinalUses, setMedicinalUses] = useState('');
+    const[medicinalUses, setMedicinalUses] = useState('');
     const [importance, setImportance] = useState('');
-    const [loading, setLoading] = useState(false);
+    const[loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

@@ -1,12 +1,21 @@
-// client/src/components/knowledge-hub/PlantCard.jsx
-import React from 'react';
-import { MapPin, BookOpen, ShieldCheck, CheckCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { MapPin, BookOpen, ShieldCheck, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
 
-// Accept onMapClick prop
 function PlantCard({ plant, onMapClick }) {
     const { finalPlantName, imageURL, location, medicinalUses, importance } = plant;
     const latitude = location.coordinates[1].toFixed(4);
     const longitude = location.coordinates[0].toFixed(4);
+
+    // --- State for Show More / Show Less ---
+    const [showFullUses, setShowFullUses] = useState(false);
+    const[showFullNotes, setShowFullNotes] = useState(false);
+
+    // Character limits to determine if we need a "Read More" button
+    const USES_LIMIT = 120;
+    const NOTES_LIMIT = 100;
+
+    const needsUsesToggle = medicinalUses && medicinalUses.length > USES_LIMIT;
+    const needsNotesToggle = importance && importance.length > NOTES_LIMIT;
 
     return (
         <div className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 flex flex-col border border-gray-100">
@@ -25,26 +34,48 @@ function PlantCard({ plant, onMapClick }) {
                 </h3>
 
                 {/* Medicinal Uses */}
-                <div className="mb-4 bg-emerald-50 p-4 rounded-lg">
+                <div className="mb-4 bg-emerald-50 p-4 rounded-lg transition-all duration-300">
                     <div className="flex items-center text-emerald-700 mb-2">
                         <BookOpen className="h-5 w-5 mr-2" />
                         <h4 className="font-bold text-sm uppercase tracking-wide">Medicinal Uses</h4>
                     </div>
-                    <p className="text-gray-800 text-sm leading-relaxed line-clamp-3">
-                        {medicinalUses || 'No uses specified.'}
-                    </p>
+                    <div className="text-gray-800 text-sm leading-relaxed">
+                        <p className={!showFullUses ? "line-clamp-3" : ""}>
+                            {medicinalUses || 'No uses specified.'}
+                        </p>
+                        {needsUsesToggle && (
+                            <button 
+                                onClick={() => setShowFullUses(!showFullUses)}
+                                className="flex items-center text-emerald-600 hover:text-emerald-800 font-bold text-xs mt-2 transition-colors"
+                            >
+                                {showFullUses ? 'Show Less' : 'Read More'}
+                                {showFullUses ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />}
+                            </button>
+                        )}
+                    </div>
                 </div>
 
-                {/* Importance */}
+                {/* Importance & Conservation */}
                 {importance && (
-                    <div className="mb-4 bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
+                    <div className="mb-4 bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500 transition-all duration-300">
                         <div className="flex items-center text-yellow-700 mb-2">
                             <ShieldCheck className="h-5 w-5 mr-2" />
                             <h4 className="font-bold text-sm uppercase tracking-wide">Conservation</h4>
                         </div>
-                        <p className="text-gray-800 text-sm leading-relaxed line-clamp-2">
-                            {importance}
-                        </p>
+                        <div className="text-gray-800 text-sm leading-relaxed">
+                            <p className={!showFullNotes ? "line-clamp-2" : ""}>
+                                {importance}
+                            </p>
+                            {needsNotesToggle && (
+                                <button 
+                                    onClick={() => setShowFullNotes(!showFullNotes)}
+                                    className="flex items-center text-yellow-700 hover:text-yellow-900 font-bold text-xs mt-2 transition-colors"
+                                >
+                                    {showFullNotes ? 'Show Less' : 'Read More'}
+                                    {showFullNotes ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />}
+                                </button>
+                            )}
+                        </div>
                     </div>
                 )}
                 
@@ -58,8 +89,9 @@ function PlantCard({ plant, onMapClick }) {
                     </div>
                     
                     <div className="flex flex-col sm:flex-row gap-3">
-                        <div className="flex-1 bg-blue-50 p-3 rounded-lg border border-blue-200 font-mono text-sm text-gray-800 text-center">
-                            {latitude}, {longitude}
+                        <div className="flex-1 bg-blue-50 p-3 rounded-lg border border-blue-200 font-mono text-sm text-gray-800 text-center flex flex-col justify-center">
+                            <span>Lat: {latitude}</span>
+                            <span>Lon: {longitude}</span>
                         </div>
                         <button 
                             onClick={() => onMapClick(plant)} // Trigger the map
@@ -71,7 +103,7 @@ function PlantCard({ plant, onMapClick }) {
                     </div>
                     
                     <p className="text-xs text-gray-500 mt-2 italic text-center">
-                         Protected data for authorized research only.
+                        🔒 Protected data for authorized research only.
                     </p>
                 </div>
             </div>

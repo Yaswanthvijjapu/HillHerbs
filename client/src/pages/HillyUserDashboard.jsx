@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { Camera, Upload, MapPin, Leaf, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+// Added ImageIcon for the gallery button
+import { Camera, Upload, MapPin, Leaf, CheckCircle, AlertCircle, Loader, Image as ImageIcon } from 'lucide-react';
 
 function HillyUserDashboard() {
-    const [file, setFile] = useState(null);
+    const[file, setFile] = useState(null);
     const [preview, setPreview] = useState(null);
     const [location, setLocation] = useState(null);
     const [error, setError] = useState('');
@@ -26,7 +27,7 @@ function HillyUserDashboard() {
                 setError('Unable to retrieve your location. Please enable location services in your browser settings.');
             }
         );
-    }, []);
+    },[]);
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
@@ -67,7 +68,7 @@ function HillyUserDashboard() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 py-12 px-4">
-            <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
+            <div className="absolute inset-0 bg-grid-slate-100[mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
             
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
@@ -93,7 +94,7 @@ function HillyUserDashboard() {
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${file ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
                                         {file ? <CheckCircle className="h-6 w-6" /> : <span className="font-semibold">1</span>}
                                     </div>
-                                    <span className="mt-2 text-sm font-medium text-gray-700">Upload Photo</span>
+                                    <span className="mt-2 text-sm font-medium text-gray-700">Photo</span>
                                 </div>
                                 
                                 <div className="flex-1 h-1 mx-4 bg-gray-200">
@@ -136,7 +137,7 @@ function HillyUserDashboard() {
                                                     <img 
                                                         src={preview} 
                                                         alt="Plant preview" 
-                                                        className="mx-auto h-64 w-auto rounded-xl shadow-lg object-cover"
+                                                        className="mx-auto max-h-80 w-auto rounded-xl shadow-lg object-contain"
                                                     />
                                                     <button
                                                         type="button"
@@ -144,39 +145,59 @@ function HillyUserDashboard() {
                                                             setFile(null);
                                                             setPreview(null);
                                                         }}
-                                                        className="absolute -top-2 -right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors"
+                                                        className="absolute -top-3 -right-3 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors shadow-lg"
                                                     >
                                                         <span className="sr-only">Remove</span>
-                                                        ×
+                                                        <AlertCircle className="h-5 w-5" />
                                                     </button>
                                                 </div>
-                                                <p className="text-sm text-gray-600">{file.name}</p>
+                                                <p className="text-sm font-medium text-emerald-700 bg-emerald-100 py-1 px-3 rounded-full inline-block">{file.name}</p>
                                             </div>
                                         ) : (
                                             <div className="space-y-6">
-                                                <div className="mx-auto w-24 h-24 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl flex items-center justify-center">
-                                                    <Upload className="h-12 w-12 text-emerald-600" />
+                                                <div className="mx-auto w-24 h-24 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full flex items-center justify-center shadow-inner">
+                                                    <Upload className="h-10 w-10 text-emerald-600" />
                                                 </div>
-                                                <div className="space-y-3">
-                                                    <label htmlFor="file-upload" className="cursor-pointer">
-                                                        <span className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl">
+                                                
+                                                {/* --- DUAL BUTTONS FOR CAMERA AND GALLERY --- */}
+                                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                                    {/* Button 1: Direct Camera Capture */}
+                                                    <label htmlFor="camera-capture" className="cursor-pointer w-full sm:w-auto">
+                                                        <span className="flex items-center justify-center px-6 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all transform hover:-translate-y-0.5 shadow-lg">
                                                             <Camera className="h-5 w-5 mr-2" />
-                                                            Choose Photo
+                                                            Take Photo
                                                         </span>
                                                         <input 
-                                                            id="file-upload" 
-                                                            name="file-upload" 
+                                                            id="camera-capture" 
+                                                            name="camera-capture" 
+                                                            type="file" 
+                                                            className="sr-only" 
+                                                            onChange={handleFileChange} 
+                                                            accept="image/*" 
+                                                            capture="environment" // <-- THIS TRIGGERS THE MOBILE BACK CAMERA
+                                                        />
+                                                    </label>
+
+                                                    {/* Button 2: Choose from Gallery */}
+                                                    <label htmlFor="gallery-upload" className="cursor-pointer w-full sm:w-auto">
+                                                        <span className="flex items-center justify-center px-6 py-3.5 bg-white text-emerald-700 border-2 border-emerald-200 font-semibold rounded-xl hover:bg-emerald-50 transition-all transform hover:-translate-y-0.5 shadow-sm">
+                                                            <ImageIcon className="h-5 w-5 mr-2" />
+                                                            Browse Gallery
+                                                        </span>
+                                                        <input 
+                                                            id="gallery-upload" 
+                                                            name="gallery-upload" 
                                                             type="file" 
                                                             className="sr-only" 
                                                             onChange={handleFileChange} 
                                                             accept="image/*" 
                                                         />
                                                     </label>
-                                                    <p className="text-sm text-gray-500">or drag and drop your image here</p>
-                                                    <p className="text-xs text-gray-400">
-                                                        PNG, JPG, GIF up to 10MB
-                                                    </p>
                                                 </div>
+                                                
+                                                <p className="text-xs text-gray-400 mt-4">
+                                                    Supports PNG, JPG, JPEG up to 10MB
+                                                </p>
                                             </div>
                                         )}
                                     </div>
@@ -198,13 +219,13 @@ function HillyUserDashboard() {
                                             </div>
                                             <div>
                                                 <p className="font-semibold text-emerald-800">Location captured successfully!</p>
-                                                <div className="mt-2 grid grid-cols-2 gap-4 text-sm">
-                                                    <div className="bg-white p-3 rounded-lg shadow-sm">
-                                                        <span className="text-gray-500">Latitude:</span>
+                                                <div className="mt-2 flex flex-wrap gap-3 text-sm">
+                                                    <div className="bg-white px-3 py-1.5 rounded-lg shadow-sm border border-emerald-100">
+                                                        <span className="text-gray-500">Lat:</span>
                                                         <span className="ml-2 font-mono font-medium text-gray-900">{location.latitude.toFixed(6)}</span>
                                                     </div>
-                                                    <div className="bg-white p-3 rounded-lg shadow-sm">
-                                                        <span className="text-gray-500">Longitude:</span>
+                                                    <div className="bg-white px-3 py-1.5 rounded-lg shadow-sm border border-emerald-100">
+                                                        <span className="text-gray-500">Lon:</span>
                                                         <span className="ml-2 font-mono font-medium text-gray-900">{location.longitude.toFixed(6)}</span>
                                                     </div>
                                                 </div>
@@ -220,7 +241,7 @@ function HillyUserDashboard() {
                                             <div>
                                                 <p className="font-semibold text-amber-800">Capturing your location...</p>
                                                 <p className="text-sm text-amber-700 mt-1">
-                                                    Please ensure location services are enabled in your browser settings.
+                                                    Please ensure location services are enabled in your browser.
                                                 </p>
                                             </div>
                                         </div>
@@ -230,12 +251,12 @@ function HillyUserDashboard() {
 
                             {/* Messages */}
                             {message && (
-                                <div className="p-5 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl">
-                                    <div className="flex items-center space-x-3">
-                                        <CheckCircle className="h-6 w-6 text-green-500 flex-shrink-0" />
+                                <div className="p-5 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl animate-fade-in">
+                                    <div className="flex items-start space-x-3">
+                                        <CheckCircle className="h-6 w-6 text-green-500 flex-shrink-0 mt-0.5" />
                                         <div>
-                                            <p className="font-semibold text-green-800">Submission Successful!</p>
-                                            <p className="text-green-700 mt-1">{message}</p>
+                                            <p className="font-bold text-green-800 text-lg">Submission Successful!</p>
+                                            <p className="text-green-700 mt-1 font-medium">{message}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -258,45 +279,45 @@ function HillyUserDashboard() {
                                 <button 
                                     type="submit" 
                                     disabled={!file || !location || loading}
-                                    className="w-full py-4 px-6 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-lg"
+                                    className="w-full py-4 px-6 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-lg font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-lg"
                                 >
                                     {loading ? (
                                         <span className="flex items-center justify-center">
-                                            <Loader className="animate-spin h-5 w-5 mr-3" />
-                                            Processing Submission...
+                                            <Loader className="animate-spin h-6 w-6 mr-3" />
+                                            Analyzing Plant with AI...
                                         </span>
                                     ) : (
                                         <span className="flex items-center justify-center">
-                                            <Upload className="h-5 w-5 mr-2" />
+                                            <Upload className="h-6 w-6 mr-2" />
                                             Submit for Expert Verification
                                         </span>
                                     )}
                                 </button>
                                 
                                 <p className="text-center text-sm text-gray-500 mt-4">
-                                    Your submission will be reviewed by our plant experts within 24-48 hours.
+                                    Your submission will be reviewed by our plant experts to ensure accuracy.
                                 </p>
                             </div>
                         </form>
 
                         {/* Tips Section */}
                         <div className="mt-12 pt-8 border-t border-gray-200">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
                                 <Leaf className="h-5 w-5 mr-2 text-emerald-600" />
-                                Tips for Best Results
+                                Tips for Accurate Identification
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="bg-gray-50 p-4 rounded-xl">
-                                    <div className="text-emerald-600 font-semibold mb-2">Clear Photos</div>
-                                    <p className="text-sm text-gray-600">Take photos in good lighting, focusing on leaves, flowers, and stems.</p>
+                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 hover:border-emerald-200 transition-colors">
+                                    <div className="text-emerald-600 font-bold mb-1">Clear Lighting</div>
+                                    <p className="text-sm text-gray-600">Ensure the plant is well-lit. Avoid heavy shadows or extreme glare.</p>
                                 </div>
-                                <div className="bg-gray-50 p-4 rounded-xl">
-                                    <div className="text-emerald-600 font-semibold mb-2">Multiple Angles</div>
-                                    <p className="text-sm text-gray-600">Include photos from different angles for better identification.</p>
+                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 hover:border-emerald-200 transition-colors">
+                                    <div className="text-emerald-600 font-bold mb-1">Focus on Details</div>
+                                    <p className="text-sm text-gray-600">Make sure leaves, flowers, or berries are in sharp focus, not blurry.</p>
                                 </div>
-                                <div className="bg-gray-50 p-4 rounded-xl">
-                                    <div className="text-emerald-600 font-semibold mb-2">Location Accuracy</div>
-                                    <p className="text-sm text-gray-600">Ensure GPS is enabled for precise location tagging.</p>
+                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 hover:border-emerald-200 transition-colors">
+                                    <div className="text-emerald-600 font-bold mb-1">Single Subject</div>
+                                    <p className="text-sm text-gray-600">Try to get only one plant species in the frame to prevent AI confusion.</p>
                                 </div>
                             </div>
                         </div>

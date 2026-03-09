@@ -12,6 +12,7 @@ import ProfilePage from './pages/ProfilePage';
 import HeroPage from './pages/HeroPage'; 
 import AdminDashboard from './pages/AdminDashboard';
 import PendingApprovalPage from './pages/PendingApprovalPage';
+import RejectedApplicationPage from './pages/RejectedApplicationPage';
 
 // Layout component to wrap pages with the Navbar
 const AppLayout = () => (
@@ -45,13 +46,14 @@ function App() {
                         </Route>
                     </Route>
 
+                    {/* Admin Routes */}
                      <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                         <Route path="/admin-dashboard" element={<AdminDashboard />} />
                     </Route>
 
+                    {/* Status Pages */}
                     <Route path="/pending-approval" element={<PendingApprovalPage />} />
-
-
+                    <Route path="/application-rejected" element={<RejectedApplicationPage />} /> 
 
                     {/* Default route */}
                     <Route path="*" element={<Navigate to="/" />} />

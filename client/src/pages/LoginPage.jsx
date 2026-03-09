@@ -26,6 +26,8 @@ function LoginPage() {
                 navigate('/expert-dashboard');
             } else if (loggedInUser.role === 'expert_pending') {
                 navigate('/pending-approval');
+            } else if (loggedInUser.role === 'expert_rejected') {
+                navigate('/application-rejected'); // <--- NEW
             } else {
                 navigate('/dashboard');
             }

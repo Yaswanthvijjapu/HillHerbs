@@ -13,7 +13,10 @@ const ProtectedRoute = ({ allowedRoles }) => {
     if (allowedRoles && !allowedRoles.includes(user.role)) {
         // Redirect logic based on what they ARE to avoid loops
         if (user.role === 'expert_pending') return <Navigate to="/pending-approval" replace />;
+        if (user.role === 'expert_rejected') return <Navigate to="/application-rejected" replace />;
         if (user.role === 'hilly_user') return <Navigate to="/dashboard" replace />;
+        if (user.role === 'expert') return <Navigate to="/expert-dashboard" replace />;
+        
         // Default fallback
         return <Navigate to="/" replace />;
     }
