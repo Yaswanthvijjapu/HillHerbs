@@ -16,7 +16,7 @@ function Navbar() {
     const { isAuthenticated, logout, user } = useAuth();
     const location = useLocation();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const[userMenuOpen, setUserMenuOpen] = useState(false);
 
     // Determine user dashboard link based on role
     const getDashboardLink = () => {
@@ -41,15 +41,16 @@ function Navbar() {
     };
 
     return (
-        <>
-            <nav className="bg-gradient-to-r from-emerald-50 to-white border-b border-emerald-100 shadow-sm">
+        // Added relative and z-50 to the nav wrapper to keep it above backdrops
+        <div className="relative z-50">
+            <nav className="bg-gradient-to-r from-emerald-50 to-white border-b border-emerald-100 shadow-sm relative z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-20">
                         {/* Logo/Brand */}
                         <div className="flex items-center space-x-4">
                             <button
                                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                                className="lg:hidden p-2 rounded-lg bg-white border border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                                className="lg:hidden p-2 rounded-lg bg-white border border-emerald-200 text-emerald-700 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                             >
                                 {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                             </button>
@@ -59,10 +60,10 @@ function Navbar() {
                                     <Leaf className="h-6 w-6 text-white" />
                                 </div>
                                 <div>
-                                    <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                                    <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent leading-none">
                                         HillHerbs
                                     </h1>
-                                    <p className="text-xs text-emerald-600 font-medium">Medicinal Plant Database</p>
+                                    <p className="text-[10px] sm:text-xs text-emerald-600 font-medium">Medicinal Plant Database</p>
                                 </div>
                             </Link>
                         </div>
@@ -105,9 +106,9 @@ function Navbar() {
                                     <div className="relative">
                                         <button 
                                             onClick={() => setUserMenuOpen(!userMenuOpen)}
-                                            className="flex items-center space-x-3 p-2 rounded-xl hover:bg-emerald-50 transition-colors"
+                                            className="flex items-center space-x-3 p-1.5 sm:p-2 rounded-xl hover:bg-emerald-50 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500"
                                         >
-                                            <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl border border-emerald-200">
+                                            <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl border border-emerald-200">
                                                 {getUserRoleIcon()}
                                             </div>
                                             <div className="hidden lg:block text-left">
@@ -147,7 +148,7 @@ function Navbar() {
                                                             logout();
                                                             setUserMenuOpen(false);
                                                         }}
-                                                        className="flex items-center space-x-3 px-4 py-3 w-full text-left hover:bg-red-50 text-red-600"
+                                                        className="flex items-center space-x-3 px-4 py-3 w-full text-left hover:bg-red-50 text-red-600 transition-colors"
                                                     >
                                                         <LogOut className="h-5 w-5" />
                                                         <span>Sign Out</span>
@@ -162,7 +163,7 @@ function Navbar() {
                                     <div className="lg:hidden">
                                         <Link 
                                             to="/register" 
-                                            className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg font-medium text-sm"
+                                            className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg font-medium text-sm shadow-md"
                                         >
                                             Join
                                         </Link>
@@ -173,53 +174,55 @@ function Navbar() {
                     </div>
                 </div>
 
-                {/* Mobile Menu */}
+                {/* Mobile Menu Dropdown */}
                 {mobileMenuOpen && (
-                    <div className="lg:hidden bg-white border-t border-emerald-100 shadow-lg">
-                        <div className="px-4 py-3 space-y-1">
+                    <div className="lg:hidden absolute top-20 left-0 w-full bg-white border-b border-emerald-100 shadow-xl z-40 transition-all duration-200">
+                        <div className="px-4 py-4 space-y-2">
                             {isAuthenticated ? (
                                 <>
                                     <Link 
                                         to={getDashboardLink()} 
-                                        className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-emerald-50 text-gray-700"
+                                        className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-emerald-50 text-gray-700 font-medium transition-colors"
                                         onClick={() => setMobileMenuOpen(false)}
                                     >
-                                        <Home className="h-5 w-5" />
+                                        <Home className="h-5 w-5 text-emerald-600" />
                                         <span>Dashboard</span>
                                     </Link>
                                     
                                     <Link 
                                         to="/profile" 
-                                        className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-emerald-50 text-gray-700"
+                                        className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-emerald-50 text-gray-700 font-medium transition-colors"
                                         onClick={() => setMobileMenuOpen(false)}
                                     >
-                                        <UserIcon className="h-5 w-5" />
+                                        <UserIcon className="h-5 w-5 text-emerald-600" />
                                         <span>My Profile</span>
                                     </Link>
                                     
-                                    <button 
-                                        onClick={() => {
-                                            logout();
-                                            setMobileMenuOpen(false);
-                                        }}
-                                        className="flex items-center space-x-3 px-4 py-3 w-full text-left rounded-lg hover:bg-red-50 text-red-600"
-                                    >
-                                        <LogOut className="h-5 w-5" />
-                                        <span>Sign Out</span>
-                                    </button>
+                                    <div className="pt-2 mt-2 border-t border-gray-100">
+                                        <button 
+                                            onClick={() => {
+                                                logout();
+                                                setMobileMenuOpen(false);
+                                            }}
+                                            className="flex items-center space-x-3 px-4 py-3 w-full text-left rounded-xl hover:bg-red-50 text-red-600 font-medium transition-colors"
+                                        >
+                                            <LogOut className="h-5 w-5" />
+                                            <span>Sign Out</span>
+                                        </button>
+                                    </div>
                                 </>
                             ) : (
                                 <>
                                     <Link 
                                         to="/login" 
-                                        className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-emerald-50 text-gray-700"
+                                        className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-emerald-50 text-gray-700 font-medium transition-colors"
                                         onClick={() => setMobileMenuOpen(false)}
                                     >
                                         <span>Sign In</span>
                                     </Link>
                                     <Link 
                                         to="/register" 
-                                        className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-white justify-center"
+                                        className="flex items-center justify-center space-x-3 px-4 py-3 mt-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-medium shadow-md"
                                         onClick={() => setMobileMenuOpen(false)}
                                     >
                                         <span>Create Account</span>
@@ -231,22 +234,22 @@ function Navbar() {
                 )}
             </nav>
 
-            {/* Backdrop for mobile menu */}
+            {/* Subtle Backdrop for mobile menu (click outside to close) */}
             {mobileMenuOpen && (
                 <div 
-                    className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+                    className="lg:hidden fixed inset-0 top-20 bg-black/20 backdrop-blur-sm z-30"
                     onClick={() => setMobileMenuOpen(false)}
                 />
             )}
 
-            {/* Backdrop for user dropdown */}
+            {/* Invisible Backdrop for user dropdown (click outside to close) */}
             {userMenuOpen && (
                 <div 
                     className="fixed inset-0 z-40"
                     onClick={() => setUserMenuOpen(false)}
                 />
             )}
-        </>
+        </div>
     );
 }
 
