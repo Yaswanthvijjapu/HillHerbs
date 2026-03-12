@@ -10,14 +10,14 @@ exports.askChatBot = async (req, res) => {
 
         // 1. Fetch verified plants to give the AI "Context"
         const plants = await PlantSubmission.find({ status: 'verified' })
-            .select('finalPlantName medicinalUses importance'); // Removed location to save tokens as it's rarely needed for general chat
+            .select('finalPlantName medicinalUses importance'); 
 
         // 2. Create a "System Prompt" with your data
         const plantContext = plants.length > 0 
             ? plants.map(p => `- ${p.finalPlantName}: Uses: ${p.medicinalUses}. Notes: ${p.importance}.`).join('\n')
             : "No plants are currently verified in the database.";
 
-        // --- UPDATED PROMPT ---
+        // --- UPDATED PROMPT FOR SHORT ANSWERS ---
         const prompt = `
             You are "Herbie", the AI assistant for the HillHerbs application. You are an expert in Botany, Ayurveda, and traditional herbal medicine.
             
@@ -30,16 +30,14 @@ exports.askChatBot = async (req, res) => {
             1. Database First: If the user's question can be answered using the HillHerbs database provided above, recommend those plants first and mention they are "verified locally by our experts".
             2. External Knowledge & Google Search: If the database does NOT contain a relevant plant for their ailment, or if they ask about a specific external plant/health care issue:
                - Use your extensive medical/botanical knowledge and Google Search to provide highly accurate remedies.
-               - Mention documentation or traditional texts (e.g., Ayurvedic Pharmacopoeia) if relevant.
-               - Explicitly state: "While we don't have a verified plant for this in our local HillHerbs database yet, generally speaking..." or "This plant is not in our database, but..."
-            3. Safety Warning: For any health remedy, ALWAYS include a brief disclaimer at the end stating: "Disclaimer: I am an AI assistant. Please consult a qualified healthcare professional before trying new herbal remedies."
-            4. Tone: Keep answers concise, empathetic, and formatted nicely (use bullet points if listing remedies).
+               - Explicitly state: "While we don't have a verified plant for this in our local HillHerbs database yet..."
+            3. Safety Warning: For any health remedy, ALWAYS include a brief disclaimer at the end stating: "Disclaimer: Consult a doctor before trying new herbal remedies."
+            4. FORMAT AND LENGTH (CRITICAL): Keep your answer VERY BRIEF. You MUST provide your answer in exactly 4 to 5 short bullet points. Do NOT write long paragraphs or lengthy explanations. Just give the direct points.
         `;
 
         // 3. Call Gemini with Google Search Tool Enabled
         const model = genAI.getGenerativeModel({ 
             model: "gemini-2.5-flash",
-            // --- NEW: ENABLE GOOGLE SEARCH GROUNDING ---
             tools:[
                 {
                     googleSearch: {} 
