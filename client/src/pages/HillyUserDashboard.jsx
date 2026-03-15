@@ -34,6 +34,7 @@ function HillyUserDashboard() {
         const selectedFile = e.target.files[0];
         if (selectedFile) {
              // Instantly show the user a preview of what they selected
+            setFile(selectedFile); 
             setPreview(URL.createObjectURL(selectedFile));
             
             try {
@@ -172,8 +173,7 @@ function HillyUserDashboard() {
                                                         <AlertCircle className="h-5 w-5" />
                                                     </button>
                                                 </div>
-                                                <p className="text-sm font-medium text-emerald-700 bg-emerald-100 py-1 px-3 rounded-full inline-block">{file.name}</p>
-                                            </div>
+                                            <p className="text-sm font-medium text-emerald-700 bg-emerald-100 py-1 px-3 rounded-full inline-block">{file?.name || 'Processing...'}</p>                                            </div>
                                         ) : (
                                             <div className="space-y-6">
                                                 <div className="mx-auto w-24 h-24 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full flex items-center justify-center shadow-inner">
