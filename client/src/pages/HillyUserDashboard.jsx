@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 // Added ImageIcon for the gallery button
 import { Camera, Upload, MapPin, Leaf, CheckCircle, AlertCircle, Loader, Image as ImageIcon } from 'lucide-react';
+import imageCompression from 'browser-image-compression'; 
 
 function HillyUserDashboard() {
     const[file, setFile] = useState(null);
@@ -29,11 +30,31 @@ function HillyUserDashboard() {
         );
     },[]);
 
-    const handleFileChange = (e) => {
+    const handleFileChange = async (e) => {
         const selectedFile = e.target.files[0];
         if (selectedFile) {
-            setFile(selectedFile);
+             // Instantly show the user a preview of what they selected
             setPreview(URL.createObjectURL(selectedFile));
+            
+            try {
+                // Settings to compress the image
+                const options = {
+                    maxSizeMB: 1.5,          // Max file size 1.5 MB (safe for Vercel)
+                    maxWidthOrHeight: 1200,  // Max resolution
+                    useWebWorker: true,
+                };
+                
+                // Compress the file!
+                const compressedFile = await imageCompression(selectedFile, options);
+                
+                // Store the small compressed file to be sent to the backend
+                setFile(compressedFile);
+                
+            } catch (error) {
+                console.error("Image compression error:", error);
+                // Fallback to original if compression fails for some reason
+                setFile(selectedFile); 
+            }
         }
     };
 
